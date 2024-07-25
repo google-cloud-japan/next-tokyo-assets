@@ -54,88 +54,82 @@ export PROJECT_ID=$(gcloud config list --format 'value(core.project)')
 
 店舗データには店舗名、住所などが、売上データには商品 ID、売上金額、販売日時などが、アンケートデータには店舗 ID と定性的なコメントが含まれています。
 
-これらのデータを手作業で分析するのは困難なため、あなたは BigQuery にデータをインポートすることにしました。BigQuery のインターフェースを使ってそれぞれの CSV ファイルをアップロードし、分析の準備を整えます。
+これらのデータを手作業で分析するのは困難なため、あなたは BigQuery にデータをインポートすることにしました。BigQuery のインターフェースを使ってそれぞれの CSV ファイルをインポートし、分析の準備を整えます。
 
-## GCS バケットの作成とファイルのアップロード
+## BigQuery への CSV ファイルのインポート
 
-1. ファイルのアップロード先となる GCS バケットを作成します。
+ここでは bq コマンドを用いて CSV ファイルを BigQuery にインポートします。
+
+1. 次のコマンドを実行して、インポートする CSV ファイルを確認します。
 ```bash
-gcloud storage buckets create gs://${PROJECT_ID}_bigquery_handson --project=$PROJECT_ID --location=us-central1
+ls -l *.csv
+```
+4 つの CSV ファイルが表示されます。
+
+2. ファイルのインポート先となる BigQuery データセットを作成します。データセットとは、テーブルなどのリソースを格納するコンテナです。
+```bash
+bq mk --location=us-central1 --dataset ${PROJECT_ID}:next_drug
 ```
 
-2. 作成した GCS バケットにハンズオン資材の CSV をアップロードします。
+3. 4 つの CSV ファイルを作成したインポートし、データセット内に 4 つのテーブルを作成します。
 ```bash
-gcloud storage cp store.csv order.csv order_items.csv customer_voice.csv gs://${PROJECT_ID}_bigquery_handson
+bq load --location=us-central1 --autodetect --source_format=CSV ${PROJECT_ID}:next_drug.store ./store.csv
+bq load --location=us-central1 --autodetect --source_format=CSV ${PROJECT_ID}:next_drug.order ./order.csv
+bq load --location=us-central1 --autodetect --source_format=CSV ${PROJECT_ID}:next_drug.order_items ./order_items.csv
+bq load --location=us-central1 --autodetect --source_format=CSV ${PROJECT_ID}:next_drug.customer_voice ./customer_voice.csv
+
 ```
 
-ハンズオンに必要な CSV データを GCS バケットにアップロードすることができました。
+CSV ファイルを BigQuery にインポートすることができました。
 
-## BigQuery の Dataset 準備
+## 作成した BigQuery データセットの確認
+
 ここからはより直感的に理解しやすいよう Cloud Console 上で操作を行いますので、Cloud Shellは閉じて構いません。
-
-まずは BigQuery の Dataset を作成します。
 
 1. ナビゲーションメニュー <walkthrough-nav-menu-icon></walkthrough-nav-menu-icon> から [**BigQuery**] に移動します。
 
-2. エクスプローラペインの **自身の プロジェクト ID** の右側に表示されている
-**<walkthrough-spotlight-pointer cssSelector="[instrumentationid=bq-dataset-explorer-resource-list] button.node-context-menu" single="true">︙ (三点リーダー)</walkthrough-spotlight-pointer>** をクリックし、[**データセットを作成**] を選択します。
-3. [**データセットを作成する**] ペインで下記の情報を入力します。
+2. エクスプローラペインの **自身の プロジェクト ID** のの下に、データセット `next_drug` が作成されていることを確認します。
 
-  フィールド  | 値
-  ------- | --------
-  データセット ID | `next_drug`
-  ロケーションタイプ | リージョン
-  データのロケーション | `us-central1`
+3. `next_drug` データセットの下にある `store` テーブルを選択します。
 
-4. [**データセットを作成**] をクリックします。
-5. エクスプローラペインの自身のプロジェクト ID の下に、データセット `next_drug` が作成されていることを確認します。
-
-## Store テーブルの作成
-次に、作成した Dataset に新しいテーブルを作成します。
-
-1. エクスプローラーペインで `next_drug` の横にある **︙** をクリックし、続いて [**テーブルを作成**] をクリックします。
-2. [**ソース**] の [**テーブルの作成元**] に [**Google Cloud Storage**] を選択します。
-3. [**参照**] をクリックして、Cloud Storage から [**store.csv**] ファイルを選択します。
-4. [**送信先**] の [**テーブル**] の名前に `store` を入力します。
-5. [**スキーマ**] > [**自動検出**] のチェックをオンにして、[**テーブルを作成**] をクリックします。
-
-作成したテーブルのデータをプレビューで確認します。
-
-1. エクスプローラーペインから **プロジェクト ID** > `next_drug` > `store` テーブルを選択します。
-2. <walkthrough-spotlight-pointer cssSelector="[instrumentationid=bq-table-preview-tab]" single="true">[**プレビュー**]</walkthrough-spotlight-pointer> をクリックします。
+4. <walkthrough-spotlight-pointer cssSelector="[instrumentationid=bq-table-preview-tab]" single="true">[**プレビュー**]</walkthrough-spotlight-pointer> をクリックします。
 
 3つの店舗のデータが正しく取り込まれていることが分かります。
 
-## その他のテーブルの作成
-続けて、あと3つのテーブルを作成します。
+同様に `customer_voice` テーブルもプレビューを確認します。各店舗に来店した顧客のアンケートデータが取り込まれていることが分かります。
 
-### Order テーブル
 
-1. エクスプローラーペインで `next_drug` の横にある **︙** をクリックし、続いて [**テーブルを作成**] をクリックします。
-2. [**ソース**] の [**テーブルの作成元**] に [**Google Cloud Storage**] を選択します。
-3. [**参照**] をクリックして、Cloud Storage から [**order.csv**] ファイルを選択します。
-4. [**送信先**] の [**テーブル**] の名前に `order` を入力します。
-5. [**スキーマ**] > [**自動検出**] のチェックをオンにして、[**テーブルを作成**] をクリックします。
+## 作成した BigQuery データセットの確認 (続き)
+続けて、`order` テーブルと `order_items` テーブルのデータを確認します。
+2 つのテーブルは各店舗での販売データが格納されている親子関係のテーブルです。
 
-### Order items テーブル
+1. エクスプローラーペインで `next_drug` データセットの下にある `order` テーブルを選択します。
 
-1. エクスプローラーペインで `next_drug` の横にある **︙** をクリックし、続いて [**テーブルを作成**] をクリックします。
-2. [**ソース**] の [**テーブルの作成元**] に [**Google Cloud Storage**] を選択します。
-3. [**参照**] をクリックして、Cloud Storage から [**order_items.csv**] ファイルを選択します。
-4. [**送信先**] の [**テーブル**] の名前に `order_items` を入力します。
-5. [**スキーマ**] > [**自動検出**] のチェックをオンにして、[**テーブルを作成**] をクリックします。
+`order` テーブルのスキーマ情報が表示されていることを確認します。
+`order` テーブルは店舗での販売ごとにレコードが作成されるテーブルです。
 
-### Customer voice テーブル
+2. スキーマの 3 つの行をすべて選択し、[**探索**] をクリックします。
 
-1. エクスプローラーペインで `next_drug` の横にある **︙** をクリックし、続いて [**テーブルを作成**] をクリックします。
-2. [**ソース**] の [**テーブルの作成元**] に [**Google Cloud Storage**] を選択します。
-3. [**参照**] をクリックして、Cloud Storage から [**customer_voice.csv**] ファイルを選択します。
-4. [**送信先**] の [**テーブル**] の名前に `customer_voice` を入力します。
-5. [**スキーマ**] > [**自動検出**] のチェックをオンにして、[**テーブルを作成**] をクリックします。
+各フィールドにどんな値が含まれているかが表示されます。
 
-BigQUery へ CSV データをインポートすることができました。それぞれのデータをプレビューして確認しておきましょう。
+* `order_id` はレコードごとに異なるユニークなキーです。
+* `store_id` は各店舗を示す ID です。
+* `order_timestamp` は店舗での販売日時であり、2024-07-01 から 2024-07-31 までの範囲です。
 
-次に BigQuery のデータに対するクエリの実行方法を学びます。
+3. 次に、エクスプローラーペインで `next_drug` データセットの下にある `order_items` テーブルを選択します。
+
+`order_items` テーブルのスキーマ情報が表示されていることを確認します。
+`order_items` テーブルは店舗で販売された商品ごとにレコードが作成されるテーブルです。
+
+4. スキーマの `category`, `item` と `total_price` を選択し、[**探索**] をクリックします。
+
+各フィールドにどんな値が含まれているかが表示されます。
+
+* `category` は販売された商品のカテゴリです。すべての商品は 4 つのカテゴリのいずれかに分類されています。
+* `item` は販売された商品の名前です。
+* `total_price` は商品の販売金額であり、商品の単価と数量をかけたものと等しいです。
+
+BigQUery へインポートしたデータセットを確認することができました。
 
 ## **[シナリオ2] Gemini in BigQuery を用いてデータを理解する**
 
@@ -325,8 +319,6 @@ BigQuery のデータに対するクエリの定期実行の方法を学びま�
 ## BigQuery から生成 AI モデル Gemini へ接続
 続いて、作成した接続を用いて BigQuery から生成 AI モデル Gemini へ接続します。
 
-<walkthrough-info-message>**注:** 前ステップで付与したアクセス権限が反映されるまでに時間がかかり、SQL クエリの実行時に Permission エラーが発生する場合があります。数分待ってから再度 SQL クエリを実行してください。</walkthrough-info-message>
-
 1. ナビゲーションメニュー <walkthrough-nav-menu-icon></walkthrough-nav-menu-icon> から [**BigQuery**] に移動します。
 
 2. <walkthrough-spotlight-pointer cssSelector="[instrumentationid=bq-sql-code-editor] button[name=addTabButton]" single="true">[**SQL クエリを作成**] アイコン</walkthrough-spotlight-pointer> をクリックして新しいタブを開き、以下の SQL を実行します。
@@ -339,18 +331,6 @@ CREATE OR REPLACE MODEL next_drug.gemini_model
 
 3. 同じタブで以下の SQL を実行し、Gemini からのレスポンスを確認します。
 ```sql
-SELECT ml_generate_text_result as response
-FROM ML.GENERATE_TEXT(
-    MODEL next_drug.gemini_model,
-    (SELECT 'Google Cloud Nextについて教えてください' AS prompt),
-    STRUCT(1000 as max_output_tokens, 0.2 as temperature)
-  )
-```
-
-Gemini からのレスポンスが json 型であることが分かります。
-
-4. BigQuery では json 型のデータを次のようなクエリで展開することが可能です。
-```sql
 SELECT JSON_VALUE(ml_generate_text_result.candidates[0].content.parts[0].text) as response
 FROM ML.GENERATE_TEXT(
     MODEL next_drug.gemini_model,
@@ -358,6 +338,8 @@ FROM ML.GENERATE_TEXT(
     STRUCT(1000 as max_output_tokens, 0.2 as temperature)
   )
 ```
+<walkthrough-info-message>**注:** 前ステップで付与したアクセス権限が反映されるまでに時間がかかり、SQL クエリの実行時に Permission エラーが発生する場合があります。数分待ってから再度 SQL クエリを実行してください。</walkthrough-info-message>
+
 
 ## Customer voice データの感情分析
 ここからはテーブルに保存したアンケートデータを分析していきます。まずは、アンケートデータの内容をプレビューで確認しましょう。
@@ -446,7 +428,7 @@ FROM
 をクリックしてドロップダウンメニューを開き [**データキャンバス**] を選択します。
 キャンバスを保存するリージョンを選択するダイアログが表示された場合は、`us-central1` を選択します。
 
-2. テキストボックスに`顧客の声`と入力して [**検索**] をクリックします。 
+2. テキストボックスに`顧客の声の分析結果を保存したテーブル`と入力して [**検索**] をクリックします。 
 
 3. `customer_voice_analyzed` のテーブルを選択し、[**Add to Canvas**] をクリックします。
 
@@ -571,13 +553,16 @@ ORDER BY
 
 Looker Studio が開いて新しいダッシュボードが作成されます。
 
+3. 追加されたグラフをドラッグして任意の位置に移動し、サイズを調整します。
+
 ## Looker Studio に BigQuery のデータを追加
 
 次に、Looker Studio に可視化したい BigQuery のデータを追加します。
 
-1. Looker Studio のメニューバーから [**データを追加**] をクリックします。
+1. Looker Studio のメニューバーから [**Add data (データを追加)**] をクリックします。
+ユーザーアカウントのセットアップを求められた場合は、画面の指示通りにします。
 
-2. [**データに接続**] セクションで [**BigQuery**] をクリックします。
+2. [**Connect to data (データに接続)**] セクションで [**BigQuery**] をクリックします。
 アクセス権を求められた場合は承認してください。
 
 3. マイプロジェクトからデータソースを次のとおり選択します。
@@ -588,25 +573,25 @@ Looker Studio が開いて新しいダッシュボードが作成されます。
 データセット | `next_drug`
 表 | `customer_voice_analyzed`
 
-4. [**追加**] をクリックします。続いて [**レポートに追加**] をクリックします。
+4. [**Add (追加)**] をクリックします。続いて [**Add to report (レポートに追加)**] をクリックします。
 
 ## Looker Studioにグラフを追加
 
 続いて、追加したデータを元に Looker Studio にグラフを追加します。
 
-1. メニューバーの[**グラフを追加**] > [**ピボットテーブル**] > [**ヒートマップ付きピボットテーブル**] をクリックします。
-2. 追加されたグラフを選択した状態で、[**グラフ**] ペインでデータの設定をします。
+1. メニューバーの[**Add a chart (グラフを追加)**] > [**Pivot table (ピボットテーブル)**] > [**Pivot table with heatmap (ヒートマップ付きピボットテーブル)**] をクリックします。
+2. 追加されたグラフを選択した状態で、[**Chart (グラフ)**] ペインでデータの設定をします。
 
 フィールド | 値
 ---------------- | ----------------
-データソース | `customer_voice_analyzed`
-行のディメンション | `topic`
-列のディメンション | `sentiment`
-指標 | (AUT)`Record Count`
+Data source | `customer_voice_analyzed`
+Row dimension (行) | `topic`
+Column dimension (列) | `sentiment`
+Metric (指標) | (AUT)`Record Count`
 
-3. 追加されたグラフをドラッグして任意の位置に移動します。
+3. 追加されたグラフをドラッグして任意の位置に移動し、サイズを調整します。
 
-おめでとうございます！これで Looker Studio のダッシュボードを用いて BigQuery のデータの可視化ができるようになりました。
+これで Looker Studio のダッシュボードを用いて BigQuery のデータの可視化ができるようになりました。
 
 ### **チャレンジ問題**
 Looker Studio にその他のテーブルやグラフも自由に追加して試してみてください。
