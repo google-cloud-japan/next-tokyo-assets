@@ -300,17 +300,99 @@ watch -d kubectl get pods,nodes,svc -n  ec-site
 kubectl get svc -n ec-site | grep LoadBalancer | awk '{print "http://"$4}'
 ```
 
-### **Lab-01-07. ダッシュボードの確認**
+### **Lab-01-07. Fleet Logging の設定**
+チームスコープ単位でのログを有効化します。この機能により、開発チームに対して、チームごとにログバケットを用意して、
+チームに対して各々に関連するログだけを見せることが可能です。
+以下コマンドを実行し、Fleet Logging の構成ファイルを生成します。  
+**こちらはコピーアンドペーストで実行ください**
 
-再び、GUI(ブラウザ上のコンソール)で作業します。ブラウザ上の別のタブを開き（または同タブにURLを入力して）[チーム](https://console.cloud.google.com/kubernetes/teams)へ移動します。
-チームのページより、チーム名 `app-a-team` がリンクになっているためクリックします。
+```text
+cat << EOF > fleet-logging.json
+{
+  "loggingConfig": {
+      "defaultConfig": {
+          "mode": "COPY"
+      },
+      "fleetScopeLogsConfig": {
+          "mode": "MOVE"
+      }
+  }
+}
+EOF
+```
+
+生成した構成ファイルを指定し、Fleet Logging を有効化します。  
+```bash
+gcloud container fleet fleetobservability update \
+        --logging-config=fleet-logging.json
+```
+
+以下コマンドを実行し、Fleet Logging が構成されていることを確認します。
+```bash
+gcloud container fleet fleetobservability describe
+```
+
+以下のように出力例 spec.fleetobservability 配下に設定内容が入力されていることを確認します。  
+```text
+createTime: '2022-09-30T16:05:02.222568564Z'
+membershipStates:
+  projects/123456/locations/us-central1/memberships/cluster-1:
+    state:
+      code: OK
+      description: Fleet monitoring enabled.
+      updateTime: '2023-04-03T20:22:51.436047872Z'
+name:
+projects/123456/locations/global/features/fleetobservability
+resourceState:
+  state: ACTIVE
+spec:
+  fleetobservability:
+    loggingConfig:
+      defaultConfig:
+        mode: COPY
+      fleetScopeLogsConfig:
+        mode: MOVE
+```
+
+### **Lab-01-08. Advanced Vulnerability Insights の有効化**
+
+GKE Enterprise の一つの機能である高度な脆弱性検査を有効にします。
+クラスタ運用者は、Secutiry Posture ダッシュボードで複数のクラスタ常に存在するコンテナに対しての脆弱性を俯瞰的にみることができ、
+対策を講じることが可能です。
+
+```bash
+gcloud container clusters update dev-cluster \
+    --location=asia-northeast1 \
+    --workload-vulnerability-scanning=enterprise
+```
+```bash
+gcloud container clusters update prod-cluster \
+    --location=asia-northeast1 \
+    --workload-vulnerability-scanning=enterprise
+```
+
+
+### **Lab-01-09. チームスコープログの確認**
+
+再度 GUI で操作します。
+ブラウザ上の別のタブを開き（または同タブにURLを入力して）[チーム](https://console.cloud.google.com/kubernetes/teams)へ移動します。  
+チームのページより、チーム名 `app-a-team` がリンクになっているためクリックします。  
+`ログ`タブを選択し、先ほどデプロイしたアプリケーションからログが出力されていることを確認します。  
+**最大で有効から 30 分程度かかる場合があるため見れない場合は先に後続の手順を進め、後ほど確認してみてください**
+これで、チームスコープ単位でのログが確認できました。
+
+### **Lab-01-09. ダッシュボードの確認**
+
 画面上部の`モニタリング`タブより、チームに関する情報が確認できます。
 どのような情報が確認できるかみてみましょう。
 (エラーがカウントされますが、アプリケーションの仕様によるもので問題ございません)
 
+### **Lab-01-09. ダッシュボードの確認**
+
 また、時間に余裕がある場合、以下も確認してみましょう。
-本日の説明範囲を超えますが、セキュリティに関するダッシュボードを確認することが可能です。
+先ほど有効化した脆弱性の結果を含むセキュリティに関するダッシュボードを確認することが可能です。
 [セキュリティ](https://console.cloud.google.com/kubernetes/security/dashboard)
+**最大で有効から 15 分程度かかる場合があるため見れない場合は先に後続の手順を進め、後ほど確認してみてください**
 
 
 Lab-01はここで完了となります。
@@ -515,26 +597,4 @@ kubectl get all
 
 
 ## **Configurations!**
-これで、入門編のハンズオンは完了となります。引き続き実践編、セキュリティガードレール編もお楽しみ下さい。
-
-## **クリーンアップ（プロジェクトを削除）**
-
-ハンズオン用に利用したプロジェクトを削除し、コストがかからないようにします。
-
-### **1. Google Cloud のデフォルトプロジェクト設定の削除**
-
-```bash
-gcloud config unset project
-```
-
-### **2. プロジェクトの削除**
-
-```bash
-gcloud projects delete ${PROJECT_ID}
-```
-
-### **3. ハンズオン資材の削除**
-
-```bash
-cd $HOME && rm -rf gcp-getting-started-lab-jp gopath
-```
+これで、ハンズオンは完了となります。最後までご参加いただき、ありがとうございました！
