@@ -381,13 +381,16 @@ gcloud container clusters update prod-cluster \
 **最大で有効から 30 分程度かかる場合があるため見れない場合は先に後続の手順を進め、後ほど確認してみてください**
 これで、チームスコープ単位でのログが確認できました。
 
-### **Lab-01-09. ダッシュボードの確認**
+また、[ログストレージ] (https://console.cloud.google.com/logs/storage)に移動して、チームごとにバケットが作られているのを確認します。
+
+
+### **Lab-01-10. ダッシュボードの確認**
 
 画面上部の`モニタリング`タブより、チームに関する情報が確認できます。
 どのような情報が確認できるかみてみましょう。
 (エラーがカウントされますが、アプリケーションの仕様によるもので問題ございません)
 
-### **Lab-01-09. ダッシュボードの確認**
+### **Lab-01-11. ダッシュボードの確認**
 
 また、時間に余裕がある場合、以下も確認してみましょう。
 先ほど有効化した脆弱性の結果を含むセキュリティに関するダッシュボードを確認することが可能です。
@@ -482,19 +485,61 @@ gcloud workstations create ws-spring-dev \
   --cluster cluster-handson \
   --config codeoss-spring
 ```
+### **Lab-02-06. CI/CD パイプラインの準備**
 
-Lab-02 は完了となります。
+Platform Engineering の要素の一つとして、デプロイの自動化があります。
+プラットフォームの管理者として開発者が簡単にデプロイできるように Cloud Build/Cloud Deploy を使ってパイプラインを構築しておきます。
+今回はハンズオンのために準備したファイルを活用してパイプラインを準備します。
+各ファイルの中身を確認しておきます。
 
-## **Lab-03. 開発者として Platform を利用する**
+```bash
+cat cloudbuild.yaml
+```
 
-### **Lab-03-01. Workstations の起動**
+```bash
+cat clouddeploy.yaml
+```
+
+このファイルは`PROJECT_ID`がプレースホルダーになっていますので、各自の環境に合わせて置換します。
+
+```bash
+sed -i "s|\${PROJECT_ID}|$PROJECT_ID|g" clouddeploy.yaml
+```
+
+まずは、パイプラインとターゲットを Cloud Deploy に登録します。これによりアプリケーションをデプロイするための
+Cluster および、dev / prod という順序性が定義されます。
+
+```bash
+gcloud deploy apply --file clouddeploy.yaml --region=asia-northeast1 --project=$PROJECT_ID
+```
+
+デプロイ方法は、`skaffold.yaml`に定義されています。ここには、デプロイに利用するマニフェスト、およびデプロイに対応する成果物が定義されています。
+
+```bash
+cat skaffold.yaml
+```
+
+Artifact Registry に CI で作成する成果物であるコンテナイメージを保管するためのレポジトリを作成しておきます。
+
+```bash
+gcloud artifacts repositories create app-repo \
+  --repository-format docker \
+  --location asia-northeast1 \
+  --description="Docker repository for Platform users"
+```
+
+以上で、プラットフォーム管理者としての作業は終わりました。
+続いて実際にプラットフォームを利用する開発者としての体験をしてみます。
+
+### **Lab-02-07. Workstations の起動**
+開発者はまず、自分の Workstations を起動することになります。
 GUI での作業となります。
 ブラウザで新しいタブを開き、[Workstations一覧](https://console.cloud.google.com/workstations/list)を開きます。
 **My workstations** に表示される `ws-spring-dev`の 起動 をクリックします。
 起動には数分程度かかります。
 ステータスが、稼働中になりましたら、開始をクリックします。新しいタブで Code OSS の Welcome 画面が開きます。初回は表示に少し時間がかかります。
 
-### **Lab-03-02. サンプルアプリケーションの入手**
+### **Lab-02-08. サンプルアプリケーションの入手**
 git よりサンプルアプリケーションを取得します。
 左側の2番目のアイコンをクリック、または、Ctrl + Shift + E の入力で、EXPLORER が開きます。
 Clone Repository を選択します。
@@ -505,7 +550,8 @@ Clone Repository を選択します。
 複製するフォルダーを選択してください、はそのまま OK をクリックしてください。
 続いて 複製したレポジトリを開きますか？または現在のワークスペースに追加しますか？という選択には、`開く`を選択してください。
 
-### **Lab-03-03. サンプルアプリケーションの実行**
+### **Lab-02-09. サンプルアプリケーションの実行**
+まずは、手元のローカル（Cloud Workstations 自体の中）でアプリケーションをテスト実行してみます。
 左上の３本の線のアイコンから、Terminal > New Terminal を選択します。
 画面下にターミナルが現れますので、こちらで作業を実施します。
 
@@ -531,9 +577,9 @@ java -jar target/spring-boot-complete-0.0.1-SNAPSHOT.jar
 続いて、Open をクリックするとシンプルなアプリケーションにアクセスできます。
 完了したら、ターミナルに戻り、Ctrl-C でアプリケーションを停止しておきます。
 
-### **Lab-03-04. GKE でのアプリケーションの実行**
+### **Lab-02-10. GKE でのアプリケーションの実行**
 引き続き Cloud Workstations で作業をします。
-サンプルアプリケーションと一緒に、Dockerfile も Golden Path として git から提供されています。
+サンプルアプリケーションと一緒に、Dockerfile と先ほどの CI/CD パイプライン用のファイル も Golden Path として git から提供されています。
 以前の手順と同様に Cloud Build でコンテナの作成を行います。
 
 Workstations 上のターミナルで実行します。ディレクトリを移動しておきます。
@@ -580,19 +626,30 @@ GKE への接続を行います
 gcloud container clusters get-credentials dev-cluster --region asia-northeast1 --project ${PROJECT_ID}
 ```
 
-GKE へのデプロイを実施します。
+CI/CD パイプラインを利用した GKE へのデプロイを実施します。
 
 ```bash
 kubectl apply -f k8s.yaml 
 ```
 
+### **Lab-02-11. Cloud Deploy での実行確認と本番環境へのプロモート**
+
 数分後、以下でデプロイ後の確認を行います。
+autopilot mode のクラスターのため、初回のデプロイはノードのスケーリングに時間が数分かかります。
+デプロイ中の様子を見るため、GUI で確認していきます。
+数分の経過後、[Cloud Deploy コンソール](https://console.cloud.google.com/deploy)に最初のリリースの詳細が表示され、それが最初のクラスタに正常にデプロイされたことが確認できます。
 
-```bash
-kubectl get all 
-```
+[Kubernetes Engine コンソール](https://console.cloud.google.com/kubernetes)に移動して、アプリケーションのエンドポイントを探します。
+左側のメニューバーより Gateway、Service、Ingress を選択し`サービス`タブに遷移します。表示される一覧から `pets-service` という名前のサービスを見つけます。
+Endpoints 列に IP アドレスが表示され、リンクとなっているため、それをクリックして、IPアドレスの最後に`/random-pets`をつけて移動します。
+アプリケーションが期待どおりに動作していることを確認します。
 
-期待通り Running になっていれば、開発者として、GKE への初期デプロイを完了することができました。
+ステージングでテストしたので、本番環境に昇格する準備が整いました。
+[Cloud Deploy コンソール](https://console.cloud.google.com/deploy)に戻ります。
+デリバリーパイプラインの一覧から、`pfe-cicd` をクリックします。
+すると、`プロモート` という青いリンクが表示されています。リンクをクリックし、内容を確認した上で、下部の`プロモート`ボタンをクリックします。すると本番環境へのデプロイを実施されます。
+
+数分後にデプロイが完了されましたら、この手順は完了となります。
 
 
 

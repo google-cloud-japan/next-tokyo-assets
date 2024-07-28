@@ -1,0 +1,23 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/app-repo/spring-gs:v1', '.']
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/app-repo/spring-gs:v1']
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      sed -i "s|image: .*|image: asia-northeast1-docker.pkg.dev/$PROJECT_ID/app-repo/pspring-gs:v1|g" kubernetes-manifests/deployment.yaml
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      gcloud deploy releases create release-$(date +%Y%m%d%H%M%S) --delivery-pipeline=next2024 --region=asia-northeast1 --source=./ --project=$PROJECT_ID
+
+images:
+- 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/app-repo/spring-gs:v2'
