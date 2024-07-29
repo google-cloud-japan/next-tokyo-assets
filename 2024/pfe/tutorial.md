@@ -156,15 +156,18 @@ gcloud compute routers nats create ws-nat \
 
 ### **Lab-00-05. GKE クラスタ の作成**
 
-以下のコマンドを実行し、GKE Autopilot クラスタを作成します。
+以下のコマンドを実行し、GKE クラスタを作成します。
 
 ```bash
-gcloud container --project "$PROJECT_ID" clusters create-auto "dev-cluster" \
+gcloud container --project "$PROJECT_ID" clusters create "dev-cluster" \
   --region "asia-northeast1" \
   --release-channel "regular" \
   --network "ws-network" \
   --subnetwork "ws-subnet" \
   --enable-private-nodes \
+  --enable-ip-alias \
+  --disk-type pd-standard \
+  --num-nodes 2 \
   --no-enable-master-authorized-networks --async
 ```
 
@@ -172,12 +175,15 @@ gcloud container --project "$PROJECT_ID" clusters create-auto "dev-cluster" \
 同様に Production 用のクラスタも作っておきます。
 
 ```bash
-gcloud container --project "$PROJECT_ID" clusters create-auto "prod-cluster" \
+gcloud container --project "$PROJECT_ID" clusters create "prod-cluster" \
   --region "asia-northeast1" \
   --release-channel "regular" \
   --network "ws-network" \
   --subnetwork "ws-subnet" \
   --enable-private-nodes \
+  --enable-ip-alias \
+  --disk-type pd-standard \
+  --num-nodes 2 \
   --no-enable-master-authorized-networks --async
 ```
 
@@ -255,7 +261,8 @@ gcloud container fleet scopes create app-a-team
 チーム機能では、複数クラスタにまたがる名前空間を作成することが可能です。
 ページ上部の` + 名前空間を追加` をクリックします。
 
-Namespace の下に 'ec-site' を入力して、`チームスコープを更新`をクリックします。
+Namespace の下に `ec-site` を入力して、＋ 押します。
+追加されたスペースに `spring-app`を入力して `チームスコープを更新`をクリックします。
 
 ### **Lab-01-06. チームスコープ内の名前空間へのアプリケーションのデプロイ**
 
@@ -280,12 +287,11 @@ kubectl get ns
 kubectl apply -f lab-01/sampleapp.yaml -n ec-site
 ```
 
-以下のコマンドで、現在の Pod および Node のステータスを取得を継続して行います。
-Pod の作成に伴い、Node が複製され、Pod がデプロイされる様子が確認できます。
-デプロイには3-5分程度の時間がかかります。
+以下のコマンドで、現在の Pod およびサービスのステータスを取得を継続して行います。
+Pod がデプロイされる様子が確認できます。デプロイには3-5分程度の時間がかかります。
 
 ```bash
-watch -d kubectl get pods,nodes,svc -n  ec-site
+watch -d kubectl get pods,svc -n  ec-site
 ```
 
 数分後、すべての Pod の Status が Running となることを確認できたら、 `Ctrl-C` でコマンドの実行を終了します。
@@ -363,12 +369,12 @@ GKE Enterprise の一つの機能である高度な脆弱性検査を有効に�
 ```bash
 gcloud container clusters update dev-cluster \
     --location=asia-northeast1 \
-    --workload-vulnerability-scanning=enterprise
+    --workload-vulnerability-scanning=enterprise --async
 ```
 ```bash
 gcloud container clusters update prod-cluster \
     --location=asia-northeast1 \
-    --workload-vulnerability-scanning=enterprise
+    --workload-vulnerability-scanning=enterprise --async
 ```
 
 
@@ -378,7 +384,7 @@ gcloud container clusters update prod-cluster \
 ブラウザ上の別のタブを開き（または同タブにURLを入力して）[チーム](https://console.cloud.google.com/kubernetes/teams)へ移動します。  
 チームのページより、チーム名 `app-a-team` がリンクになっているためクリックします。  
 `ログ`タブを選択し、先ほどデプロイしたアプリケーションからログが出力されていることを確認します。  
-**最大で有効から 30 分程度かかる場合があるため見れない場合は先に後続の手順を進め、後ほど確認してみてください**
+**有効から 2,30 分程度かかる場合があるため、先に後続の手順を進め、後ほど確認してみてください**
 これで、チームスコープ単位でのログが確認できました。
 
 また、[ログストレージ] (https://console.cloud.google.com/logs/storage)に移動して、チームごとにバケットが作られているのを確認します。
@@ -395,7 +401,7 @@ gcloud container clusters update prod-cluster \
 また、時間に余裕がある場合、以下も確認してみましょう。
 先ほど有効化した脆弱性の結果を含むセキュリティに関するダッシュボードを確認することが可能です。
 [セキュリティ](https://console.cloud.google.com/kubernetes/security/dashboard)
-**最大で有効から 15 分程度かかる場合があるため見れない場合は先に後続の手順を進め、後ほど確認してみてください**
+**最大でAdvanced Vulnerability Insights の有効化から 15 分程度かかる場合があるため見れない場合は先に後続の手順を進め、後ほど確認してみてください**
 
 
 Lab-01はここで完了となります。
@@ -413,15 +419,6 @@ gcloud artifacts repositories create ws-repo \
   --repository-format docker \
   --location asia-northeast1 \
   --description="Docker repository for Cloud workstations"
-```
-
-ここで、Lab-03 で使うアプリケーション用の レポジトリも作成しておきます。
-
-```bash
-gcloud artifacts repositories create spring-app \
-  --repository-format docker \
-  --location asia-northeast1 \
-  --description="Docker repository for spring-app"
 ```
 
 ### **Lab-02-02. Cloud Workstations コンテナイメージの作成**
@@ -465,6 +462,8 @@ gcloud artifacts repositories add-iam-policy-binding ws-repo \
 ```bash
 gcloud workstations configs create codeoss-spring \
   --machine-type e2-standard-4 \
+  --pd-disk-size 200 \
+  --pd-disk-type pd-standard \
   --region asia-northeast1 \
   --cluster cluster-handson \
   --disable-public-ip-addresses \
@@ -493,24 +492,29 @@ Platform Engineering の要素の一つとして、デプロイの自動化が�
 各ファイルの中身を確認しておきます。
 
 ```bash
-cat cloudbuild.yaml
+cat lab-02/cloudbuild.yaml
 ```
 
 ```bash
-cat clouddeploy.yaml
+cat lab-02/clouddeploy.yaml
 ```
 
 このファイルは`PROJECT_ID`がプレースホルダーになっていますので、各自の環境に合わせて置換します。
 
 ```bash
-sed -i "s|\${PROJECT_ID}|$PROJECT_ID|g" clouddeploy.yaml
+sed -i "s|\${PROJECT_ID}|$PROJECT_ID|g" lab-02/clouddeploy.yaml
+```
+
+正しく反映されているか確認します。
+```bash
+cat lab-02/clouddeploy.yaml
 ```
 
 まずは、パイプラインとターゲットを Cloud Deploy に登録します。これによりアプリケーションをデプロイするための
 Cluster および、dev / prod という順序性が定義されます。
 
 ```bash
-gcloud deploy apply --file clouddeploy.yaml --region=asia-northeast1 --project=$PROJECT_ID
+gcloud deploy apply --file lab-02clouddeploy.yaml --region=asia-northeast1 --project=$PROJECT_ID
 ```
 
 デプロイ方法は、`skaffold.yaml`に定義されています。ここには、デプロイに利用するマニフェスト、およびデプロイに対応する成果物が定義されています。
