@@ -1,0 +1,30 @@
+[
+    {
+      "name": "id",
+      "type": "STRING"
+    },
+    {
+        "name": "image",
+        "type": "STRING"
+    },
+    {
+        "name": "categories",
+        "type": "STRING",
+        "mode": "REPEATED"
+    },
+    {
+        "name": "title",
+        "type": "STRING",
+        "mode": "NULLABLE"
+    },
+    {
+        "name": "description",
+        "type": "STRING",
+        "mode": "NULLABLE"
+    },
+    {
+      "name": "tags",
+      "type": "STRING",
+      "mode": "REPEATED"
+    }
+]
