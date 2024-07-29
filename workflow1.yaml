@@ -1,0 +1,29 @@
+main:
+    steps:
+        - init:
+            assign:
+                - project_id: ${sys.get_env("GOOGLE_CLOUD_PROJECT_ID")}
+                - bucket: ${sys.get_env("BUCKET")}
+                - table_id: ${sys.get_env("TABLE_ID")}
+                - job_name: ${sys.get_env("JOB_NAME")}
+                - job_location: ${sys.get_env("REGION")}
+        - get_objects:
+            call: googleapis.storage.v1.objects.list
+            args:
+                bucket: ${bucket}
+            result: object
+        - run_job:
+            call: googleapis.run.v1.namespaces.jobs.run
+            args:
+                name: ${"namespaces/" + project_id + "/jobs/" + job_name}
+                location: ${job_location}
+                body:
+                    overrides:
+                        taskCount: ${len(object.items)}
+                        containerOverrides:
+                            env:
+                                - name: ITEMS
+                                  value: ${json.encode_to_string(object.items)}
+            result: job_execution
+        - finish:
+            return: ${job_execution}
