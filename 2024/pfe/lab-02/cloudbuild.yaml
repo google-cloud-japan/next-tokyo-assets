@@ -10,7 +10,7 @@ steps:
   args:
     - '-c'
     - |
-      sed -i "s|image: .*|image: asia-northeast1-docker.pkg.dev/$PROJECT_ID/app-repo/pspring-gs:v1|g" kubernetes-manifests/deployment.yaml
+      sed -i "s|image: .*|image: asia-northeast1-docker.pkg.dev/$PROJECT_ID/app-repo/spring-gs:v1|g" kubernetes-manifests/deployment.yaml
 
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'

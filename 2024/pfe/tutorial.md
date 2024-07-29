@@ -288,7 +288,7 @@ kubectl apply -f lab-01/sampleapp.yaml -n ec-site
 ```
 
 以下のコマンドで、現在の Pod およびサービスのステータスを取得を継続して行います。
-Pod がデプロイされる様子が確認できます。デプロイには3-5分程度の時間がかかります。
+Pod がデプロイされる様子が確認できます。デプロイには 3 分程度の時間がかかります。
 
 ```bash
 watch -d kubectl get pods,svc -n  ec-site
@@ -514,7 +514,7 @@ cat lab-02/clouddeploy.yaml
 Cluster および、dev / prod という順序性が定義されます。
 
 ```bash
-gcloud deploy apply --file lab-02clouddeploy.yaml --region=asia-northeast1 --project=$PROJECT_ID
+gcloud deploy apply --file lab-02/clouddeploy.yaml --region=asia-northeast1 --project=$PROJECT_ID
 ```
 
 デプロイ方法は、`skaffold.yaml`に定義されています。ここには、デプロイに利用するマニフェスト、およびデプロイに対応する成果物が定義されています。
@@ -530,6 +530,25 @@ gcloud artifacts repositories create app-repo \
   --repository-format docker \
   --location asia-northeast1 \
   --description="Docker repository for Platform users"
+```
+Cloud Build から Cloud Deploy を利用するにあたっていくつか権限が必要になるため、サービスアカウントに付与します。
+
+```bash
+PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
+CLOUD_BUILD_SA="${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"
+COMPUTE_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+```
+```bash
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+    --role="roles/clouddeploy.admin"
+```
+
+```bash
+gcloud iam service-accounts add-iam-policy-binding $COMPUTE_SA \
+    --member="serviceAccount:${CLOUD_BUILD_SA}" \
+    --role="roles/iam.serviceAccountUser" \
+    --project=$PROJECT_ID
 ```
 
 以上で、プラットフォーム管理者としての作業は終わりました。
@@ -552,7 +571,7 @@ Clone Repository を選択します。
 入力後、`レポジトリの URL https://github.com/ssekimoto/gs-spring-boot.git`をクリックします。
 (Github から複製を選択してしまうと、Github の認証が必要となりますのでキャンセルしてやり直してください)
 複製するフォルダーを選択してください、はそのまま OK をクリックしてください。
-続いて 複製したレポジトリを開きますか？または現在のワークスペースに追加しますか？という選択には、`開く`を選択してください。
+続いて 複製したレポジトリを開きますか？または現在のワークスペースに追加しますか？という選択には、`開く(Open)`を選択してください。
 
 ### **Lab-02-09. サンプルアプリケーションの実行**
 まずは、手元のローカル（Cloud Workstations 自体の中）でアプリケーションをテスト実行してみます。
@@ -568,7 +587,7 @@ cd complete
 アプリケーションをビルドします。
 
 ```bash
-mvn clean install
+mvn clean install -DskipTests
 ```
 
 ビルドしたアプリケーションをまずは Workstations 上で実行します。
@@ -584,9 +603,8 @@ java -jar target/spring-boot-complete-0.0.1-SNAPSHOT.jar
 ### **Lab-02-10. GKE でのアプリケーションの実行**
 引き続き Cloud Workstations で作業をします。
 サンプルアプリケーションと一緒に、Dockerfile と先ほどの CI/CD パイプライン用のファイル も Golden Path として git から提供されています。
-以前の手順と同様に Cloud Build でコンテナの作成を行います。
-
-Workstations 上のターミナルで実行します。ディレクトリを移動しておきます。
+ここでは、プラットフォーム管理者が作成したパイプラインを利用して、アプリケーションのコンテナ化から、GKE へのデプロイまでを自動化する体験をします。
+Workstations 上のターミナルで実行します。もしディレクトリを移動している場合、`complete` へ移動しておきます。
 
 ```bash
 cd /home/user/gs-spring-boot/complete
@@ -600,6 +618,7 @@ gcloud auth login
 
 表示される URL を Ctrl + クリックで Open、もしくはコピー&ペーストで別のタブで開きます。
 すると Google アカウントへのログイン画面になるため、ログインを実施します。
+ログインするアカウントは lab 向けに払い出されている student- から始まるものであることに注意してください。
 最後に表示される `4/0` から始まる verification code をコピーして、Cloud Workstations の ターミナルに貼り付けます。
 正常にログインが完了すると
 `You are now logged in as [アカウント]`と表示されます。
@@ -614,26 +633,10 @@ export PROJECT_ID=[PROJECT_ID(自身のIDに置き換えます[]は不要です)
 gcloud config set project ${PROJECT_ID}
 ```
 
-提供されている Dockerfile を利用して、コンテナ化を行います。
+CI/CD パイプラインを利用して、コンテナのビルドおよび GKE の dev-cluster へのデプロイを実施します。
 
 ```bash
-gcloud builds submit . --tag asia-northeast1-docker.pkg.dev/${PROJECT_ID}/spring-app/spring-app:v1.0.0
-```
-
-続いて GKE へのデプロイを行います。
-左側のファイル一覧から `complete/k8s.yaml` を開きます。
-17行目の `asia-northeast1-docker.pkg.dev/${PROJECT_ID}/spring-app/spring-app:v1.0.0` の`${PROJECT_ID}`を実際のプロジェクトID に置き換えます。(Cloud Workstations は編集すると即時反映となるため、保存は不要です。）
-
-GKE への接続を行います
-
-```bash
-gcloud container clusters get-credentials dev-cluster --region asia-northeast1 --project ${PROJECT_ID}
-```
-
-CI/CD パイプラインを利用した GKE へのデプロイを実施します。
-
-```bash
-kubectl apply -f k8s.yaml 
+gcloud builds submit --config cloudbuild.yaml .
 ```
 
 ### **Lab-02-11. Cloud Deploy での実行確認と本番環境へのプロモート**
@@ -644,8 +647,8 @@ autopilot mode のクラスターのため、初回のデプロイはノード�
 数分の経過後、[Cloud Deploy コンソール](https://console.cloud.google.com/deploy)に最初のリリースの詳細が表示され、それが最初のクラスタに正常にデプロイされたことが確認できます。
 
 [Kubernetes Engine コンソール](https://console.cloud.google.com/kubernetes)に移動して、アプリケーションのエンドポイントを探します。
-左側のメニューバーより Gateway、Service、Ingress を選択し`サービス`タブに遷移します。表示される一覧から `pets-service` という名前のサービスを見つけます。
-Endpoints 列に IP アドレスが表示され、リンクとなっているため、それをクリックして、IPアドレスの最後に`/random-pets`をつけて移動します。
+左側のメニューバーより Gateway、Service、Ingress を選択し`サービス`タブに遷移します。表示される一覧から `spring-app-service` という名前のサービスを見つけます。
+Endpoints 列に IP アドレスが表示され、リンクとなっているため、それをクリックして移動します。
 アプリケーションが期待どおりに動作していることを確認します。
 
 ステージングでテストしたので、本番環境に昇格する準備が整いました。
