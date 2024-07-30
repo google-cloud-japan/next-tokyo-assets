@@ -387,7 +387,7 @@ gcloud container clusters update prod-cluster \
 **有効から 2,30 分程度かかる場合があるため、先に後続の手順を進め、後ほど確認してみてください**
 これで、チームスコープ単位でのログが確認できました。
 
-また、[ログストレージ] (https://console.cloud.google.com/logs/storage)に移動して、チームごとにバケットが作られているのを確認します。
+また、[ログストレージ](https://console.cloud.google.com/logs/storage)に移動して、チームごとにバケットが作られているのを確認します。
 
 
 ### **Lab-01-10. ダッシュボードの確認**
@@ -520,7 +520,7 @@ gcloud deploy apply --file lab-02/clouddeploy.yaml --region=asia-northeast1 --pr
 デプロイ方法は、`skaffold.yaml`に定義されています。ここには、デプロイに利用するマニフェスト、およびデプロイに対応する成果物が定義されています。
 
 ```bash
-cat skaffold.yaml
+cat lab-02/skaffold.yaml
 ```
 
 Artifact Registry に CI で作成する成果物であるコンテナイメージを保管するためのレポジトリを作成しておきます。
@@ -641,8 +641,6 @@ gcloud builds submit --config cloudbuild.yaml .
 
 ### **Lab-02-11. Cloud Deploy での実行確認と本番環境へのプロモート**
 
-数分後、以下でデプロイ後の確認を行います。
-autopilot mode のクラスターのため、初回のデプロイはノードのスケーリングに時間が数分かかります。
 デプロイ中の様子を見るため、GUI で確認していきます。
 数分の経過後、[Cloud Deploy コンソール](https://console.cloud.google.com/deploy)に最初のリリースの詳細が表示され、それが最初のクラスタに正常にデプロイされたことが確認できます。
 
@@ -653,7 +651,7 @@ Endpoints 列に IP アドレスが表示され、リンクとなっているた
 
 ステージングでテストしたので、本番環境に昇格する準備が整いました。
 [Cloud Deploy コンソール](https://console.cloud.google.com/deploy)に戻ります。
-デリバリーパイプラインの一覧から、`pfe-cicd` をクリックします。
+デリバリーパイプラインの一覧から、`next2024` をクリックします。
 すると、`プロモート` という青いリンクが表示されています。リンクをクリックし、内容を確認した上で、下部の`プロモート`ボタンをクリックします。すると本番環境へのデプロイを実施されます。
 
 数分後にデプロイが完了されましたら、この手順は完了となります。
