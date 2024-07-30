@@ -67,15 +67,15 @@ ls -l *.csv
 
 2. ファイルのインポート先となる BigQuery データセットを作成します。データセットとは、テーブルなどのリソースを格納するコンテナです。
 ```bash
-bq mk --location=asia-northeast1 --dataset ${PROJECT_ID}:next_drug
+bq mk --location=us-central1 --dataset ${PROJECT_ID}:next_drug
 ```
 
 3. 4 つの CSV ファイルを作成したインポートし、データセット内に 4 つのテーブルを作成します。
 ```bash
-bq load --location=asia-northeast1 --autodetect --replace --source_format=CSV ${PROJECT_ID}:next_drug.store ./store.csv
-bq load --location=asia-northeast1 --autodetect --replace --source_format=CSV ${PROJECT_ID}:next_drug.order ./order.csv
-bq load --location=asia-northeast1 --autodetect --replace --source_format=CSV ${PROJECT_ID}:next_drug.order_items ./order_items.csv
-bq load --location=asia-northeast1 --autodetect --replace --source_format=CSV ${PROJECT_ID}:next_drug.customer_voice ./customer_voice.csv
+bq load --location=us-central1 --autodetect --replace --source_format=CSV ${PROJECT_ID}:next_drug.store ./store.csv
+bq load --location=us-central1 --autodetect --replace --source_format=CSV ${PROJECT_ID}:next_drug.order ./order.csv
+bq load --location=us-central1 --autodetect --replace --source_format=CSV ${PROJECT_ID}:next_drug.order_items ./order_items.csv
+bq load --location=us-central1 --autodetect --replace --source_format=CSV ${PROJECT_ID}:next_drug.customer_voice ./customer_voice.csv
 
 ```
 
@@ -220,7 +220,7 @@ LIMIT 10;
 
 6. 実行したクエリを保存して、チームへの共有や次回に再利用することができます。 [**保存**] をクリックし、続いて [**クエリを保存**] をクリックします。
 
-7. [**名前**] に `販売トップ10` と入力し、[**リージョン**] に `asia-northeast1` を選択し、[**保存**] をクリックします。
+7. [**名前**] に `販売トップ10` と入力し、[**リージョン**] に `us-central1` を選択し、[**保存**] をクリックします。
 
 8. 保存されたクエリはエクスプローラペインの **プロジェクト ID** > [**クエリ**] の下で確認ができます。
 
@@ -262,7 +262,7 @@ LIMIT 10;
 時刻 | `01:00`
 すぐに開始 | 選択する
 ロケーションタイプ | リージョン
-リージョン | `asia-northeast1`
+リージョン | `us-central1`
 
 5. 他はデフォルトのまま [**保存**] をクリックし、スケジュールを保存します。認証を求められた場合は、ハンズオン用のユーザーを選んで認証します。
 6. すぐに開始 を選択したため、エクスプローラーペインの **プロジェクト ID** > `next_drug` の下に新しいテーブル `top10_items` が作成されていることが確認できます。
@@ -289,7 +289,7 @@ BigQuery のデータに対するクエリの定期実行の方法を学びま�
 接続タイプ | **Vertex AI リモートモデル、リモート関数、BigLake（Cloud リソース）**
 接続 ID | `gemini-connect`
 ロケーションタイプ | **リージョン**
-リージョン | `asia-northeast1`
+リージョン | `us-central1`
 
 3. [**接続を作成**] をクリックします。
 4. [**接続へ移動**] をクリックします。
@@ -317,7 +317,7 @@ BigQuery のデータに対するクエリの定期実行の方法を学びま�
 2. <walkthrough-spotlight-pointer cssSelector="[instrumentationid=bq-sql-code-editor] button[name=addTabButton]" single="true">[**SQL クエリを作成**] アイコン</walkthrough-spotlight-pointer> をクリックして新しいタブを開き、以下の SQL を実行します。
 ```sql
 CREATE OR REPLACE MODEL next_drug.gemini_model
-  REMOTE WITH CONNECTION `asia-northeast1.gemini-connect`
+  REMOTE WITH CONNECTION `us-central1.gemini-connect`
   OPTIONS(ENDPOINT = 'gemini-1.5-flash')
 ```
 ここでは、生成 AI モデルの Gemini Flash を指定しました。
@@ -419,7 +419,7 @@ FROM
 
 1. <walkthrough-spotlight-pointer cssSelector="[instrumentationid=bq-sql-code-editor] button[aria-label='その他の設定項目']" single="true">▼ボタン</walkthrough-spotlight-pointer>
 をクリックしてドロップダウンメニューを開き [**データキャンバス**] を選択します。
-キャンバスを保存するリージョンを選択するダイアログが表示された場合は、`asia-northeast1` を選択します。
+キャンバスを保存するリージョンを選択するダイアログが表示された場合は、`us-central1` を選択します。
 
 2. テキストボックスに`顧客の声の分析結果を保存したテーブル`と入力して [**検索**] をクリックします。 
 
