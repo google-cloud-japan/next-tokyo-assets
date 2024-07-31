@@ -113,6 +113,8 @@ AI organizer では Firebase の機能をフル活用し、リアルタイム性
 
 1. `Firebase プロジェクトが準備できました` と表示されたら `続行` をクリックします。
 
+**Firebase console での作業はここまでになります。このあとは Cloud Shell に戻り操作を行ってください**
+
 ### **2. Terraform の初期化**
 
 本ハンズオンではいくつかの設定を作成済みの Terraform スクリプトを利用します。
@@ -238,6 +240,14 @@ gcloud run deploy ai-organizer \
 ```
 
 **注**: デプロイ完了まで最大 10 分程度かかります。
+
+### **4. (Optional) コンテナのビルドログを確認する**
+
+上記 3 の手順は時間がかかるため、コンテナのビルドログを確認します。
+
+コマンド実行中の出力に `Building Container... Logs are available at [https://console.cloud.google.com/〜]` と記載があります。
+
+ここで `https://console.〜` の URL をクリックすると、リアルタイムのコンテナビルドログを確認できます。
 
 ## **生成 AI 関連機能 (GenAI backend) の追加**
 
@@ -478,9 +488,11 @@ gcloud run services describe ai-organizer --region asia-northeast1 --format json
 
 ### **4. ソースの追加**
 
-- 左メニューの中の `ソース` の右にある ＋ のようなアイコンをクリックします。
-- 手持ちの PDF、または以下のサンプル PDF をダウンロードし、アップロードします。
-- 少し待つと読み込み処理が完了し、ロード中マークが消えます。
+1. 左メニューの中の `ソース` の右にある ＋ のようなアイコンをクリックします。
+1. 手持ちの PDF、または以下のサンプル PDF をダウンロードし、アップロードします。
+1. 少し待つと読み込み処理が完了し、ロード中マークが消えます。
+
+**サンプル PDF 一覧**
 
 - [Cloud Run](https://storage.googleapis.com/genai-handson-20230929/CloudRun.pdf)
 - [Cloud SQL](https://storage.googleapis.com/genai-handson-20230929/CloudSQL.pdf)
