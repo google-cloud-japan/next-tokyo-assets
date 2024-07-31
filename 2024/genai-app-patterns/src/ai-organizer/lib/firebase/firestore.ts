@@ -35,7 +35,7 @@ export type Source = {
 type GetSourcesSnapshotCallback = (sources: Source[]) => void;
 
 export const getSourcesSnapshot = (uid: string, notebookId: string, cb: GetSourcesSnapshotCallback) => {
-  const q = query(collection(db, 'users', uid, 'notebooks', notebookId, 'sources'));
+  const q = query(collection(db, 'users', uid, 'notebooks', notebookId, 'sources'), orderBy('createdAt', 'desc'));
 
   const unsubscribe = onSnapshot(q, (querySnapshot) => {
     const sources = querySnapshot.docs.map(
