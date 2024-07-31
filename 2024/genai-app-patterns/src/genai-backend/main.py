@@ -5,7 +5,7 @@ import vertexai
 from cloudevents.http import from_http
 from flask import Flask, request
 from google.cloud import firestore, storage
-from vertexai.generative_models import Content, Part
+from vertexai.generative_models import Content, GenerationConfig, Part
 from vertexai.preview import rag
 from vertexai.preview.generative_models import GenerativeModel, Tool
 
@@ -40,6 +40,8 @@ RAG_MAX_EMBEDDING_REQUESTS_PER_MIN = 900
 RAG_SIMILARITY_TOP_K = 3
 RAG_VECTOR_DISTANCE_THRESHOLD = 0.3
 QUESTION_FAILED_MESSAGE = "申し訳ございません。回答の生成に失敗しました。再度質問をやり直してください。"
+MAX_SUMMARIZATION_LENGTH = 2048
+SUMMARIZATION_FAILED_MESSAGE = "申し訳ございません。要約の生成に失敗しました。"
 
 # Obtain project_id from environment variable and will raise exception if not set
 try:
@@ -56,6 +58,7 @@ except KeyError:
 bucket_name = f"{PROJECT_ID}.appspot.com"
 
 vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
+db = firestore.Client()
 
 @app.route("/add_user", methods=["POST"])
 def add_user():
@@ -78,14 +81,12 @@ def add_user():
     )
     app.logger.info(f"{event_id}: finished creating a rag corpus for a user: {uid}")
     
-    db = firestore.Client()
     doc_ref = db.collection(users).document(uid)
     doc_ref.update({"corpusName": rag_corpus.name, "status": "created"})
 
     app.logger.info(f"{event_id}: finished adding a user: {uid}")
 
     return ("finished", 204)
-
 
 @app.route("/add_source", methods=["POST"])
 def add_source():
@@ -96,8 +97,6 @@ def add_source():
     users, uid, notebooks, notebookId, sources, sourceId = document.split('/')
 
     app.logger.info(f"{event_id}: start adding a source: {sourceId}")
-
-    db = firestore.Client()
 
     user_ref = db.collection(users).document(uid)
     user = user_ref.get()
@@ -145,8 +144,6 @@ def question():
     users, uid, notebooks, notebookId, chat, messageId = document.split('/')
 
     app.logger.info(f"{event_id}: start generating an answer: {messageId}")
-
-    db = firestore.Client()
 
     message_ref = db.collection(users).document(uid).collection(notebooks).document(notebookId).collection(chat).document(messageId)
     message = message_ref.get()
@@ -217,7 +214,6 @@ def question():
 
     return ("finished", 204)
 
-
 @app.route("/update_source", methods=["POST"])
 def update_source():
     event = from_http(request.headers, request.get_data())
@@ -225,8 +221,6 @@ def update_source():
     document = event.get("document")
 
     users, uid, notebooks, notebookId, sources, sourceId = document.split('/')
-
-    db = firestore.Client()
 
     doc_ref = db.collection(users).document(uid).collection(notebooks).document(notebookId).collection(sources).document(sourceId)
     doc = doc_ref.get()
@@ -258,19 +252,57 @@ def update_source():
     blob.delete()
     app.logger.info(f"{event_id}: finished deleting a source file from cloud storage: {bucket_name}{storagePath}")
 
+    notebook_ref = db.collection(users).document(uid).collection(notebooks).document(notebookId)
+    notebook_ref.update({"sourceCount": firestore.Increment(-1)})
+
     doc_ref.delete()
 
     app.logger.info(f"{event_id}: finished deleting a source: {name}")
 
     return ("finished", 204)
 
-
-@app.route("/query", methods=["POST"])
-def query():
+@app.route("/summarize", methods=["POST"])
+def summarize():
     event = from_http(request.headers, request.get_data())
     event_id = event.get("id")
+    document = event.get("document")
 
-    app.logger.info(f"{event_id}: query handler received")
+    users, uid, notebooks, notebookId, sources, sourceId = document.split('/')
+
+    app.logger.info(f"{event_id}: start summarizing a source: {sourceId}")
+
+    doc_ref = db.collection(users).document(uid).collection(notebooks).document(notebookId).collection(sources).document(sourceId)
+    doc = doc_ref.get()
+
+    file_type = doc.get("type")
+    storagePath = doc.get("storagePath")
+    gcs_path = f"gs://{PROJECT_ID}.appspot.com{storagePath}"
+
+    model = GenerativeModel(model_name=GENERATIVE_MODEL_NAME)
+
+    doc_part = Part.from_uri(gcs_path, file_type)
+
+    config = GenerationConfig(
+        max_output_tokens=MAX_SUMMARIZATION_LENGTH + 1000, temperature=0, top_p=1, top_k=32,
+    )
+
+    prompt = f"""You are an AI assistant.
+    
+    Summarize the contents for readers who doesn't have enough domain knowledge.
+    Output the result in Japanese and the result must be less than {MAX_SUMMARIZATION_LENGTH} characters.
+    Surround the keypoint sentence or words by **.
+    """
+
+    try:
+        app.logger.info(f"{event_id}: start generating a summary for a source: {sourceId}")
+        response = model.generate_content([doc_part, prompt], generation_config=config)
+        app.logger.info(f"{event_id}: finished generating a summary for a source: {sourceId}")
+        doc_ref.update({"summarization": response.text})
+        app.logger.info(f"{event_id}: finished summarizing a source: {sourceId}")
+    except Exception as err:
+        app.logger.info(f"{event_id}: failed generating a summary for a source: {sourceId}")
+        doc_ref.update({"summarization": SUMMARIZATION_FAILED_MESSAGE})
+        app.logger.info(f"{event_id}: failed summarizing a source: {err=}, {type(err)=}")
 
     return ("finished", 204)
 
