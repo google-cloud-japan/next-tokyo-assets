@@ -126,12 +126,12 @@ const SourceUpload = () => {
             <FilePicker id="markdown" handleUpload={handleUpload} accept=".md" label="マークダウン ファイル">
               <BsMarkdown size={24} />
             </FilePicker>
-            <FilePicker id="word" handleUpload={handleUpload} accept=".docx" label="ワード ファイル">
+            {/* <FilePicker id="word" handleUpload={handleUpload} accept=".docx" label="ワード ファイル">
               <FaRegFileWord size={24} />
             </FilePicker>
             <FilePicker id="powerpoint" handleUpload={handleUpload} accept=".pptx" label="パワーポイント ファイル">
               <FaRegFilePowerpoint size={24} />
-            </FilePicker>
+            </FilePicker> */}
             <FilePicker id="html" handleUpload={handleUpload} accept=".html,.htm" label="HTML ファイル">
               <BsFiletypeHtml size={24} />
             </FilePicker>
