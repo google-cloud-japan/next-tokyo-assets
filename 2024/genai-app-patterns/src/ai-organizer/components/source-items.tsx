@@ -38,6 +38,7 @@ const SourceItems = () => {
           name={source.name}
           selected={source.selected}
           status={source.status}
+          type={source.type}
         />
       ))}
     </>

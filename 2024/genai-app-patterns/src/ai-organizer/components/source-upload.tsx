@@ -5,13 +5,12 @@ import { customAlphabet } from 'nanoid';
 import { alphanumeric } from 'nanoid-dictionary';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
-import { BsMarkdown } from 'react-icons/bs';
-import { FaRegPlusSquare } from 'react-icons/fa';
+import { BsFiletypeHtml, BsFiletypeJson, BsMarkdown } from 'react-icons/bs';
+import { FaRegFilePowerpoint, FaRegFileWord, FaRegPlusSquare } from 'react-icons/fa';
 import { FaRegFilePdf } from 'react-icons/fa6';
-import { PiFileAudio } from 'react-icons/pi';
 import { RiShieldUserLine } from 'react-icons/ri';
-import { RiMovieLine } from 'react-icons/ri';
 import { RxFileText } from 'react-icons/rx';
+import { toast } from 'sonner';
 
 import FilePicker from '@/components/file-picker';
 import {
@@ -23,9 +22,11 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog';
 import VisuallyHidden from '@/components/visually-hidden';
+import { MAX_FILE_SIZE } from '@/lib/constants';
 import { storage } from '@/lib/firebase/client-app';
 import { addSource } from '@/lib/firebase/firestore';
 import { useUserId } from '@/lib/hooks/auth';
+import { isAcceptableFileType } from '@/lib/utils';
 
 const SourceUpload = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -35,6 +36,21 @@ const SourceUpload = () => {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const file = e.target.files[0];
+
+    setDialogOpen(false);
+
+    if (!isAcceptableFileType(file.type)) {
+      toast.error('ファイルのアップロードに失敗しました: 許可されていないファイル形式です');
+      return;
+    }
+    const maxFileSizeForFile = (
+      Object.entries(MAX_FILE_SIZE).find(([key]) => key === file.type) as [string, number]
+    )[1];
+    if (file.size > maxFileSizeForFile) {
+      toast.error('ファイルのアップロードに失敗しました: ファイルサイズが大きすぎます');
+      return;
+    }
+
     const fileId = customAlphabet(alphanumeric, 20)();
     const fileExtension = file.name.split('.').pop();
     const filePath = `/files/${uid}/${fileId}.${fileExtension}`;
@@ -44,7 +60,7 @@ const SourceUpload = () => {
       contentType: file.type
     });
 
-    setDialogOpen(false);
+    toast.success('ファイルのアップロードを開始しました');
 
     uploadTask.on(
       'state_changed',
@@ -107,11 +123,17 @@ const SourceUpload = () => {
             <FilePicker id="markdown" handleUpload={handleUpload} accept=".md" label="マークダウン ファイル">
               <BsMarkdown size={24} />
             </FilePicker>
-            <FilePicker id="audio" handleUpload={handleUpload} accept="audio/*" label="音声ファイル">
-              <PiFileAudio size={24} />
+            <FilePicker id="word" handleUpload={handleUpload} accept=".docx" label="ワード ファイル">
+              <FaRegFileWord size={24} />
             </FilePicker>
-            <FilePicker id="movie" handleUpload={handleUpload} accept="video/*" label="動画ファイル">
-              <RiMovieLine size={24} />
+            <FilePicker id="powerpoint" handleUpload={handleUpload} accept=".pptx" label="パワーポイント ファイル">
+              <FaRegFilePowerpoint size={24} />
+            </FilePicker>
+            <FilePicker id="html" handleUpload={handleUpload} accept=".html,.htm" label="HTML ファイル">
+              <BsFiletypeHtml size={24} />
+            </FilePicker>
+            <FilePicker id="json" handleUpload={handleUpload} accept=".json" label="JSON ファイル">
+              <BsFiletypeJson size={24} />
             </FilePicker>
           </DialogContent>
         </Dialog>

@@ -2,10 +2,14 @@
 
 import { useAtomValue } from 'jotai';
 import { FormEvent, useState } from 'react';
-import { BsThreeDotsVertical } from 'react-icons/bs';
 import { BsTrash } from 'react-icons/bs';
+import { BsFiletypeHtml, BsFiletypeJson, BsMarkdown, BsThreeDotsVertical } from 'react-icons/bs';
+import { FaRegFileWord } from 'react-icons/fa';
+import { FaRegFilePowerpoint } from 'react-icons/fa';
 import { FaRegFilePdf } from 'react-icons/fa6';
+import { LuFileQuestion } from 'react-icons/lu';
 import { MdOutlineEdit } from 'react-icons/md';
+import { RxFileText } from 'react-icons/rx';
 import ClipLoader from 'react-spinners/ClipLoader';
 import PuffLoader from 'react-spinners/PuffLoader';
 
@@ -23,9 +27,10 @@ export type SourceItemProps = {
   name: string;
   selected: boolean;
   status: string;
+  type: string;
 };
 
-const SourceItem = ({ uid, notebookId, id, name, selected, status }: SourceItemProps) => {
+const SourceItem = ({ uid, notebookId, id, name, selected, status, type }: SourceItemProps) => {
   const [dialogForDeleteOpen, setDialogForDeleteOpen] = useState(false);
   const [dialogForNameChangeOpen, setDialogForNameChangeOpen] = useState(false);
   const [dropdownMenuOpen, setDropdownMenuOpen] = useState(false);
@@ -62,6 +67,27 @@ const SourceItem = ({ uid, notebookId, id, name, selected, status }: SourceItemP
     setHover(false);
   };
 
+  const fileIcon = () => {
+    switch (true) {
+      case /application\/pdf/.test(type):
+        return <FaRegFilePdf size={24} color="red" />;
+      case /text\/plain/.test(type):
+        return <RxFileText size={24} color="#6F51A1" />;
+      case /text\/markdown/.test(type):
+        return <BsMarkdown size={24} />;
+      case /text\/html/.test(type):
+        return <BsFiletypeHtml size={24} color="#E54C21" />;
+      case /application\/json/.test(type):
+        return <BsFiletypeJson size={24} color="#1D1D1D" />;
+      case /application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/.test(type):
+        return <FaRegFileWord size={24} color="#2A5599" />;
+      case /application\/vnd\.openxmlformats-officedocument\.presentationml\.presentation/.test(type):
+        return <FaRegFilePowerpoint size={24} color="#D14425" />;
+      default:
+        return <LuFileQuestion size={24} />;
+    }
+  };
+
   return (
     <div
       className="flex h-14 w-full cursor-pointer items-center rounded-lg pr-[14px] transition hover:bg-slate-100"
@@ -76,7 +102,7 @@ const SourceItem = ({ uid, notebookId, id, name, selected, status }: SourceItemP
             </button>
           ) : (
             <div className="flex size-12 min-w-12 items-center justify-center rounded-full transition hover:bg-[#DFE5EC]">
-              <FaRegFilePdf size={24} color="red" />
+              {fileIcon()}
             </div>
           )}
         </DropdownMenuTrigger>
