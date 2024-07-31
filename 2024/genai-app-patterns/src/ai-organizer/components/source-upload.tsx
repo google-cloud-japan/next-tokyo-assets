@@ -1,6 +1,6 @@
 'use client';
 
-import { ref, uploadBytesResumable } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { customAlphabet } from 'nanoid';
 import { alphanumeric } from 'nanoid-dictionary';
 import { useParams } from 'next/navigation';
@@ -79,17 +79,20 @@ const SourceUpload = () => {
       (error) => {
         switch (error.code) {
           case 'storage/unauthorized':
-            console.log('NO PERMISSION');
+            toast.error('ファイルのアップロードに失敗しました: 権限がありません');
             break;
           case 'storage/canceled':
+            toast.error('ファイルのアップロードがキャンセルされました');
             break;
           case 'storage/unknown':
+            toast.error('不明なエラーが発生しました');
             break;
         }
       },
       async () => {
         console.log('upload finished!!');
-        await addSource(fileId, uid as string, file.type, filePath, notebookId as string, file.name);
+        const downloadURL = await getDownloadURL(storageRef);
+        await addSource(fileId, uid as string, file.type, filePath, notebookId as string, file.name, downloadURL);
       }
     );
   };

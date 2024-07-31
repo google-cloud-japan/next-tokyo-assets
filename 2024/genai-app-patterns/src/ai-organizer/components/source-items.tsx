@@ -30,16 +30,7 @@ const SourceItems = () => {
   return (
     <>
       {sources.map((source) => (
-        <SourceItem
-          key={source.id}
-          uid={uid as string}
-          notebookId={notebookId as string}
-          id={source.id}
-          name={source.name}
-          selected={source.selected}
-          status={source.status}
-          type={source.type}
-        />
+        <SourceItem key={source.id} uid={uid as string} source={source} notebookId={notebookId as string} />
       ))}
     </>
   );

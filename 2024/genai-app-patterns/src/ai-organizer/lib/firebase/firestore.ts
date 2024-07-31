@@ -28,6 +28,8 @@ export type Source = {
   storagePath: string;
   ragFileId: string;
   status: 'creating' | 'created' | 'deleting' | 'error';
+  downloadURL: string;
+  summarization: string | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 };
@@ -66,7 +68,8 @@ export const addSource = async (
   type: string,
   storagePath: string,
   notebookId: string,
-  name: string
+  name: string,
+  downloadURL: string
 ) => {
   await setDoc(doc(db, 'users', uid, 'notebooks', notebookId, 'sources', id), {
     name: name,
@@ -76,7 +79,9 @@ export const addSource = async (
     ragFileId: null,
     status: 'creating',
     createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
+    updatedAt: serverTimestamp(),
+    downloadURL: downloadURL,
+    summarization: null
   });
   await updateDoc(doc(db, 'users', uid, 'notebooks', notebookId), {
     sourceCount: increment(1)

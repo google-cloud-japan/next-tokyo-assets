@@ -12,6 +12,7 @@ const notesAtom = atom<Note[]>([]);
 const notebooksAtom = atom<Notebook[]>([]);
 const userAtom = atom<User | null>(null);
 const messageAtom = atom('');
+const sourceAtom = atom<Source | null>(null);
 
 export {
   chatMessagesAtom,
@@ -20,6 +21,7 @@ export {
   notesAtom,
   showChatModalAtom,
   sidebarOpenAtom,
+  sourceAtom,
   sourcesAtom,
   userAtom
 };
