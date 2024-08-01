@@ -33,7 +33,12 @@ const SelectAllSources = () => {
     <div className="flex h-10 items-center justify-between">
       <span className="flex items-center text-sm">すべてのソースを選択</span>
       <div className="flex w-8 items-center justify-center">
-        <input type="checkbox" className="size-4" checked={allSelected} onChange={handleClickAllSelect} />
+        <input
+          type="checkbox"
+          className="size-4 cursor-pointer"
+          checked={allSelected}
+          onChange={handleClickAllSelect}
+        />
       </div>
     </div>
   );

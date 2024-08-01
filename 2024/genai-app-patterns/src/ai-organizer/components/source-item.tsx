@@ -1,6 +1,6 @@
 'use client';
 
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { FormEvent, useState } from 'react';
 import { BsTrash } from 'react-icons/bs';
 import { BsFiletypeHtml, BsFiletypeJson, BsMarkdown, BsThreeDotsVertical } from 'react-icons/bs';
@@ -17,26 +17,25 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import VisuallyHidden from '@/components/visually-hidden';
-import { deleteSource, toggleSourceSelected, updateSourceName } from '@/lib/firebase/firestore';
-import { sidebarOpenAtom } from '@/lib/state';
+import { deleteSource, Source, toggleSourceSelected, updateSourceName } from '@/lib/firebase/firestore';
+import { sidebarOpenAtom, sourceAtom } from '@/lib/state';
+import { cn } from '@/lib/utils';
 
 export type SourceItemProps = {
+  source: Source;
   uid: string;
   notebookId: string;
-  id: string;
-  name: string;
-  selected: boolean;
-  status: string;
-  type: string;
 };
 
-const SourceItem = ({ uid, notebookId, id, name, selected, status, type }: SourceItemProps) => {
+const SourceItem = ({ source, uid, notebookId }: SourceItemProps) => {
+  const { id, name, type, selected, status } = source;
   const [dialogForDeleteOpen, setDialogForDeleteOpen] = useState(false);
   const [dialogForNameChangeOpen, setDialogForNameChangeOpen] = useState(false);
   const [dropdownMenuOpen, setDropdownMenuOpen] = useState(false);
   const [hover, setHover] = useState(false);
   const open = useAtomValue(sidebarOpenAtom);
   const [editableName, setEditableName] = useState(name);
+  const setSource = useSetAtom(sourceAtom);
 
   const disabled = status !== 'created';
 
@@ -65,6 +64,10 @@ const SourceItem = ({ uid, notebookId, id, name, selected, status, type }: Sourc
     setDialogForNameChangeOpen(false);
     setDropdownMenuOpen(false);
     setHover(false);
+  };
+
+  const handleClickName = () => {
+    setSource(source);
   };
 
   const fileIcon = () => {
@@ -181,7 +184,12 @@ const SourceItem = ({ uid, notebookId, id, name, selected, status, type }: Sourc
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="flex-1 truncate text-sm">{name}</span>
+                <span
+                  className={cn('flex-1 truncate text-sm', { 'font-semibold': source.summarization })}
+                  onClick={handleClickName}
+                >
+                  {name}
+                </span>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="border-[#616161] bg-[#616161] text-white">
                 <p className="flex-1 text-xs">{name}</p>
