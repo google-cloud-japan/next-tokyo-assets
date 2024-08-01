@@ -64,6 +64,8 @@ teachme tutorial_ja.md
 
 ## **Google Cloud 環境設定**
 
+### **1. Google Cloud 機能有効化**
+
 Google Cloud では利用したい機能（API）ごとに、有効化を行う必要があります。
 
 ここで、以降のハンズオンで利用する機能を事前に有効化しておきます。
@@ -85,13 +87,21 @@ gcloud services enable \
 
 **GUI**: [API ライブラリ](https://console.cloud.google.com/apis/library)
 
+### **2. Terraform の初期化**
+
+本ハンズオンではいくつかの設定を作成済みの Terraform スクリプトを利用します。
+
+そのために **Terraform の実行環境を初期化**します。
+
+```bash
+(cd tf/ && terraform init)
+```
+
 <walkthrough-footnote>必要な機能が使えるようになりました。次に Firebase の設定方法を学びます。</walkthrough-footnote>
 
 ## **Firebase プロジェクトの設定**
 
 AI organizer では Firebase の機能をフル活用し、リアルタイム性の高い UI を構築しています。
-
-### **1. Firebase プロジェクトの有効化**
 
 **GUI** から Firebase を有効化します。
 
@@ -112,18 +122,6 @@ AI organizer では Firebase の機能をフル活用し、リアルタイム性
    `このプロジェクトで Google アナリティクスを有効にする` をオフにし、`Firebase を追加` をクリックします。
 
 1. `Firebase プロジェクトが準備できました` と表示されたら `続行` をクリックします。
-
-**Firebase console での作業はここまでになります。このあとは Cloud Shell に戻り操作を行ってください**
-
-### **2. Terraform の初期化**
-
-本ハンズオンではいくつかの設定を作成済みの Terraform スクリプトを利用します。
-
-そのために **Terraform の実行環境を初期化**します。
-
-```bash
-(cd tf/ && terraform init)
-```
 
 ## **Firebase アプリケーションの設定**
 
@@ -455,7 +453,7 @@ RAG は一般的に大きくデータを準備する前処理と、質問への�
 - <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="191" endLine="197" startCharacterOffset="4" endCharacterOffset="5">過去の履歴を取得</walkthrough-editor-select-line>
 - <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="205" endLine="205" startCharacterOffset="8" endCharacterOffset="65">過去の履歴を含め質問を送信</walkthrough-editor-select-line>
 
-## **AI organizer の試用**
+## **AI organizer の試用 (ユーザー登録からソースのアップロード)**
 
 ### **1. アプリケーションへブラウザからアクセス**
 
@@ -497,25 +495,70 @@ gcloud run services describe ai-organizer --region asia-northeast1 --format json
 - [クラウドのデータ ガバナンスに関する原則とベスト プラクティス](https://services.google.com/fh/files/misc/principles_best_practices_for_data-governance.pdf)
 - [マイクロサービスでクラウド ネイティブなアプローチを採用](https://cloud.google.com/files/Cloud-native-approach-with-microservices.pdf)
 
-### **5. ソースに関連する質問**
+## **AI organizer の試用 (アップロードしたファイルについての質問)**
 
-- アップロードしたソースのチェックボックスをチェックし、最下部の質問バーから質問を入力します。
+### **1. ソースに関連する質問**
+
+アップロードしたソースのチェックボックスをチェックし、最下部の質問バーから質問を入力します。
+サンプル PDF ごとの質問文例を記載します。
+
+- [クラウドチームの編成](https://services.google.com/fh/files/misc/designing_cloud_teams.pdf)
+
+  ```text
+  クラウドチーム編成のベストプラクティスを教えて下さい
+  ```
+
+- [Google Cloud の AI 導入フレームワーク](https://services.google.com/fh/files/misc/ai_adoption_framework_whitepaper.pdf)
+
+  ```text
+  AI を導入する手順を簡潔に教えて下さい
+  ```
+
+- [Google Cloud 導入フレームワーク](https://services.google.com/fh/files/misc/google_cloud_adoption_framework_whitepaper.pdf)
+
+  ```text
+  Google Cloud を使い始めるにはまず何からやるべきですか
+  ```
+
+- [統合データ分析プラットフォームの構築](https://services.google.com/fh/files/misc/googlecloud_unified_analytics_data_platform_paper_2021.pdf)
+
+  ```text
+  データ分析プラットフォームを統合するデメリットはありますか
+  ```
+
+- [データベースを強みにする](https://services.google.com/fh/files/misc/guide_to_google_cloud_databases.pdf)
+
+  ```text
+  Google Cloud のデータベースの強みを教えて下さい
+  ```
+
+- [クラウドのデータ ガバナンスに関する原則とベスト プラクティス](https://services.google.com/fh/files/misc/principles_best_practices_for_data-governance.pdf)
+
+  ```text
+  クラウドのデータガバナンスの原則を簡潔に教えて下さい
+  ```
+
+- [マイクロサービスでクラウド ネイティブなアプローチを採用](https://cloud.google.com/files/Cloud-native-approach-with-microservices.pdf)
+
+  ```text
+  マイクロサービスのメリットは何ですか
+  ```
 
 うまくいくと、アップロードしたファイルの内容をベースに回答が生成されます。
 
-### **6. 気に入った回答を保存する**
+### **2. 気に入った回答を保存する**
 
 気に入った回答の右上にあるピンボタンをクリックすると、メモとして保存することが可能です。
 
-### **7. 色々活用してみる**
+### **3. 色々活用してみる**
 
 手持ちの PDF などをアップロードし、回答に利用したい PDF を選択、質問を繰り返してどのような回答になるかを体験してみてください。
 
-### **8. ログアウトする**
+### **4. ログアウトする**
 
 画面の右上のアイコン (扉からでていくマーク) をクリックするとログアウトが可能です。
 
-### **9. 新規ユーザーを作成し、データが別管理になっていることを確認する**
+### **5. 新規ユーザーを作成し、データが別管理になっていることを確認する**
 
 新しいユーザーを作成し、動作を確認してみてください。
 
