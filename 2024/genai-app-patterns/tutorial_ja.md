@@ -97,6 +97,10 @@ gcloud services enable \
 (cd tf/ && terraform init)
 ```
 
+### **3. Vertex AI 関連機能の有効化**
+
+[Vertex AI](https://console.cloud.google.com/vertex-ai) にアクセスし `すべての推奨 API を有効化` ボタンをクリックします。
+
 <walkthrough-footnote>必要な機能が使えるようになりました。次に Firebase の設定方法を学びます。</walkthrough-footnote>
 
 ## **Firebase プロジェクトの設定**
@@ -451,7 +455,7 @@ RAG は一般的に大きくデータを準備する前処理と、質問への�
 具体的な処理部分を以下に示します。
 
 - <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="197" endLine="203" startCharacterOffset="4" endCharacterOffset="5">過去の履歴を取得</walkthrough-editor-select-line>
-- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="212" endLine="212" startCharacterOffset="8" endCharacterOffset="65">過去の履歴を含め質問を送信</walkthrough-editor-select-line>
+- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="211" endLine="211" startCharacterOffset="8" endCharacterOffset="65">過去の履歴を含め質問を送信</walkthrough-editor-select-line>
 
 ## **AI organizer の試用 (ユーザー登録からソースのアップロード)**
 
