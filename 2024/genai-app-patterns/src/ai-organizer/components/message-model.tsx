@@ -32,7 +32,7 @@ const MessageModel = ({ content, loading, uid, notebookId }: MessageModelProps) 
         ) : (
           <>
             <MdOutlinePushPin
-              className="absolute right-2 top-2 rounded-full bg-black/50 p-2"
+              className="absolute right-2 top-2 cursor-pointer rounded-full bg-black/50 p-2"
               size={40}
               color="white"
               onClick={handleClickPin}
