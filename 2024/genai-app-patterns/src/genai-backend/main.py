@@ -351,7 +351,7 @@ def generate_common_questions():
 
     # Remove unnecessary numbers (1. ,2. ,3. ) or hyphens (- ) at the beginning of the questions.
     for raw_question in raw_questions:
-        question = raw_question.split(' ')[1] if ' ' in raw_question else raw_question
+        question = raw_question.split()[1] if ' ' in raw_question else raw_question
         # Skip if the question is too short
         if len(question) < MEANINGFUL_MINIMUM_QUESTION_LENGTH:
             app.logger.info(f"{event_id}: skipping generated common question: {question}")
