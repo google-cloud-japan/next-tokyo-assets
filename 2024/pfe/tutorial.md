@@ -33,7 +33,7 @@ export PROJECT_ID=[PROJECT_ID]
 
 ## **gcloud コマンドラインツール**
 
-Google Cloud は、コマンドライン（CLI）、GUI から操作が可能です。ハンズオンでは主に CLI を使い作業を行いますが、GUI で確認する URL も合わせて掲載します。
+Google Cloud は、コマンドライン（CLI）、GUI から操作が可能です。ハンズオンでは主に CLI を使い作業を行いますが、GUI で確認できる URL も合わせて記載します。
 
 ### **1. gcloud コマンドラインツールとは?**
 
@@ -55,7 +55,7 @@ gcloud コマンドでは操作の対象とするプロジェクトの設定が�
 gcloud config set project ${PROJECT_ID}
 ```
 
-承認するかどうかを聞かれるメッセージがでた場合は、`承認` ボタンをクリックします。
+承認を求めるメッセージが表示された場合は、`承認` ボタンをクリックします。
 
 ### **3. ハンズオンで利用する Google Cloud の API を有効化する**
 
@@ -71,7 +71,7 @@ gcloud services enable cloudbuild.googleapis.com container.googleapis.com artifa
 
 ## **4. gcloud コマンドラインツール設定 - リージョン、ゾーン**
 
-コンピュートリソースを作成するデフォルトのリージョン、ゾーンとして、東京 (asia-northeast1/asia-northeast1-c）を指定します。
+東京 (asia-northeast1/asia-northeast1-c) をコンピュートリソースを作成する際のデフォルトのリージョン、ゾーンとして指定します。
 
 ```bash
 gcloud config set compute/region asia-northeast1 && gcloud config set compute/zone asia-northeast1-c
@@ -132,7 +132,7 @@ gcloud compute networks subnets create ws-subnet \
 
 ### **Lab-00-03. Cloud Router の作成**
 
-Cloud NAT を設定するため、Cloud Router を作成しておきます。
+Cloud NAT を設定するため、Cloud Router を作成します。
 
 
 ```bash
@@ -144,7 +144,7 @@ gcloud compute routers create \
 
 ### **Lab-00-04. Cloud NAT の作成**
 
-GKE Cluster や Cloud Workstations は外部 IP を持たせない設定となるため、Cloud NAT を設定しておきます。
+GKE クラスタや Cloud Workstations は外部 IP を持たせない設定にするため、Cloud NAT を設定します。
 
 ```bash
 gcloud compute routers nats create ws-nat \
@@ -189,7 +189,7 @@ gcloud container --project "$PROJECT_ID" clusters create "prod-cluster" \
 
 ### **Lab-00-06. WS クラスタ の作成**
 
-後半の Lab02 で使う Cloud Workstations 用のクラスタを用意しておきます。
+後半の Lab02 で使う Cloud Workstations 用のクラスタを事前に用意しておきます。
 この作業は同一のリージョンで一度だけ必要で、作成完了まで 25 分程度かかります。
 
 ```bash
@@ -203,10 +203,9 @@ gcloud workstations clusters create cluster-handson \
 以上で事前準備は完了です。
 
 ## **Lab-01 GKE Enterprise によるマルチチームでの GKE の利用**
-GKE Enterprise を有効化すると様々な高度な機能が GKE 上で利用できるようになります。
+GKE Enterprise を有効化すると、GKE 上でさまざまな高度な機能が利用できるようになります。
 その中の一つとして、入門編では、チーム管理機能を利用します。
-Platform Engineering における、Internal Developer Platform は複数のストリームアラインドチーム(アプリ開発チーム)によって利用されることを想定しているため、このようなマルチテナントの機能を実装しておくと管理がしやすくなります。
-
+Platform Engineering における Internal Developer Platform は、複数のストリームアラインドチーム (アプリ開発チーム) によって利用されることを想定しているため、このようなマルチテナント機能を実装しておくと管理が容易になります。
 
 ### **Lab-01-01.GKE Enterprise の有効化**
 
@@ -220,14 +219,14 @@ gcloud services enable --project "$PROJECT_ID" \
 
 ### **Lab-01-02.GKE Enterprise チーム機能の有効化**
 
-まず、チーム機能に必要なフリートを作成します。フリートは船団という意味で、GKE クラスタの論理的なグループです。
+まず、チーム機能に必要なフリートを作成します。フリートは船団を意味し、GKE クラスタの論理的なグループです。
 
 ```bash
   gcloud container fleet create \
     --project "$PROJECT_ID"
 ```
 
-作成したフリートに dev-cluster を登録しておきます。
+dev-cluster をフリートに登録します。
 
 ```bash
 gcloud container clusters update dev-cluster --enable-fleet --location asia-northeast1
@@ -242,18 +241,18 @@ gcloud container clusters update prod-cluster --enable-fleet --location asia-nor
 
 ### **Lab-01-03.GKE Enterprise チームスコープの作成**
 
-フリートの中にチームスコープを作成します。チームスコープは複数クラスタにまたがる開発チームが利用する範囲とメンバーなどを定義するリソースです。
+フリートの中にチームスコープを作成します。チームスコープは、複数のクラスタにまたがる開発チームが利用する範囲やメンバーなどを定義するリソースです。
 ```bash
 gcloud container fleet scopes create app-a-team
 ```
 
 ### **Lab-01-04. チームスコープへのクラスタの登録**
 
-ここからは GUI で操作します。
+ここからは GUI で操作を行います。
 ブラウザ上の別のタブを開き（または同タブにURLを入力して）[チーム](https://console.cloud.google.com/kubernetes/teams)へ移動します。
-チームのページより、チーム名 `app-a-team` がリンクになっているためクリックします。
+チームのページで、チーム名 app-a-team がリンクになっているのでクリックします。
 続いて、ページ上部の` + クラスタを追加` をクリックします。
-`すべて選択` にチェックを入れ `OK` を押します。
+`すべて選択` にチェックを入れ `OK` をクリックします。
 `チームスコープを更新`をクリックします。
 
 ### **Lab-01-05. 名前空間の追加**
@@ -261,12 +260,12 @@ gcloud container fleet scopes create app-a-team
 チーム機能では、複数クラスタにまたがる名前空間を作成することが可能です。
 ページ上部の` + 名前空間を追加` をクリックします。
 
-Namespace の下に `ec-site` を入力して、＋ 押します。
+Namespace の下に `ec-site` を入力して、＋ をクリックします。
 追加されたスペースに `spring-app`を入力して `チームスコープを更新`をクリックします。
 
 ### **Lab-01-06. チームスコープ内の名前空間へのアプリケーションのデプロイ**
 
-クラスタの作成が完了しましたら、サンプルアプリケーションをデプロイします。 [Online Boutique microservices demo](https://github.com/GoogleCloudPlatform/microservices-demo)アプリケーションは、EC サイトをモチーフにしたマイクロサービスアプリケーションとなっています。kuberenetes のマニフェストについては、`lab-01/sampleapp.yaml` をご確認ください。
+クラスタの作成が完了しましたら、サンプルアプリケーションをデプロイします。 [Online Boutique microservices demo](https://github.com/GoogleCloudPlatform/microservices-demo)アプリケーションは、EC サイトをモチーフにしたマイクロサービスアプリケーションです。Kuberenetes のマニフェストについては、`lab-01/sampleapp.yaml` をご確認ください。
 
 再び、Cloud Shell での作業となります。
 以下のコマンドでdev-cluster に対して接続します。
@@ -288,17 +287,17 @@ kubectl apply -f lab-01/sampleapp.yaml -n ec-site
 ```
 
 以下のコマンドで、現在の Pod およびサービスのステータスを取得を継続して行います。
-Pod がデプロイされる様子が確認できます。デプロイには 3 分程度の時間がかかります。
+Pod がデプロイされる様子を確認できます。デプロイには約 3 分かかります。
 
 ```bash
 watch -d kubectl get pods,svc -n  ec-site
 ```
 
-数分後、すべての Pod の Status が Running となることを確認できたら、 `Ctrl-C` でコマンドの実行を終了します。
+数分後、すべての Pod の Status が Running となったら、 `Ctrl-C` でコマンドの実行を終了します。
 
 ### **Lab-01-06. Demo サイトの確認**
 ロードバランサーの設定が完了するまで数分かかります。数分後、以下のコマンドでアプリケーションの URL を確認します。
-確認した URL をコピーして Chrome などの Web ブラウザのアドレスバーに貼り付けアプリケーションを確認します。
+取得した URL をコピーして Chrome などの Web ブラウザのアドレスバーに貼り付けアプリケーションを取得します。
 なお、設定が完了するまでの数分間（場合によってはそれ以上）は、Connection reset by peer のエラーが出力されます。
 その場合は、さらにしばらくお待ちください。
 
@@ -307,10 +306,9 @@ kubectl get svc -n ec-site | grep LoadBalancer | awk '{print "http://"$4}'
 ```
 
 ### **Lab-01-07. Fleet Logging の設定**
-チームスコープ単位でのログを有効化します。この機能により、開発チームに対して、チームごとにログバケットを用意して、
-チームに対して各々に関連するログだけを見せることが可能です。
+チームスコープ単位でログを有効化します。この機能により、開発チームごとにログバケットを用意し、各チームに関連するログのみを表示できます。
 以下コマンドを実行し、Fleet Logging の構成ファイルを生成します。  
-**こちらはコピーアンドペーストで実行ください**
+**こちらはコピー&ペーストで実行ください**
 
 ```text
 cat << EOF > fleet-logging.json
@@ -327,7 +325,7 @@ cat << EOF > fleet-logging.json
 EOF
 ```
 
-生成した構成ファイルを指定し、Fleet Logging を有効化します。  
+生成した構成ファイルを指定して、Fleet Logging を有効化します。  
 ```bash
 gcloud container fleet fleetobservability update \
         --logging-config=fleet-logging.json
@@ -338,7 +336,7 @@ gcloud container fleet fleetobservability update \
 gcloud container fleet fleetobservability describe
 ```
 
-以下のように出力例 spec.fleetobservability 配下に設定内容が入力されていることを確認します。  
+出力例のように、 spec.fleetobservability 配下に設定内容が入力されていることを確認します。  
 ```text
 createTime: '2022-09-30T16:05:02.222568564Z'
 membershipStates:
