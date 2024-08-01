@@ -41,7 +41,9 @@ RAG_SIMILARITY_TOP_K = 3
 RAG_VECTOR_DISTANCE_THRESHOLD = 0.3
 QUESTION_FAILED_MESSAGE = "申し訳ございません。回答の生成に失敗しました。再度質問をやり直してください。"
 MAX_SUMMARIZATION_LENGTH = 2048
+MAX_TOTAL_COMMON_QUESTIONS_LENGTH = 1024
 SUMMARIZATION_FAILED_MESSAGE = "申し訳ございません。要約の生成に失敗しました。"
+MEANINGFUL_MINIMUM_QUESTION_LENGTH = 7
 
 # Obtain project_id from environment variable and will raise exception if not set
 try:
@@ -303,6 +305,64 @@ def summarize():
         app.logger.info(f"{event_id}: failed generating a summary for a source: {sourceId}")
         doc_ref.update({"summarization": SUMMARIZATION_FAILED_MESSAGE})
         app.logger.info(f"{event_id}: failed summarizing a source: {err=}, {type(err)=}")
+
+    return ("finished", 204)
+
+@app.route("/generate_common_questions", methods=["POST"])
+def generate_common_questions():
+    event = from_http(request.headers, request.get_data())
+    event_id = event.get("id")
+    document = event.get("document")
+
+    users, uid, notebooks, notebookId, sources, sourceId = document.split('/')
+
+    app.logger.info(f"{event_id}: start generating common questions: {sourceId}")
+
+    doc_ref = db.collection(users).document(uid).collection(notebooks).document(notebookId).collection(sources).document(sourceId)
+    doc = doc_ref.get()
+
+    file_type = doc.get("type")
+    storagePath = doc.get("storagePath")
+    gcs_path = f"gs://{PROJECT_ID}.appspot.com{storagePath}"
+
+    model = GenerativeModel(model_name=GENERATIVE_MODEL_NAME)
+
+    doc_part = Part.from_uri(gcs_path, file_type)
+
+    config = GenerationConfig(
+        max_output_tokens=MAX_TOTAL_COMMON_QUESTIONS_LENGTH, temperature=0, top_p=1, top_k=32,
+    )
+
+    prompt = """You are an AI assistant.
+
+    I want you to propose up to 5 common, simple questions based on the content.
+    Output the result in Japanese and print per question per line.
+    Each question should be one sentence and up to 30 characters long."""
+
+    questions = []
+    raw_questions = []
+    try:
+        app.logger.info(f"{event_id}: start generating commmon raw questions: {sourceId}")
+        response = model.generate_content([doc_part, prompt], generation_config=config)
+        app.logger.info(f"{event_id}: finished generating commmon raw questions: {sourceId}")
+        raw_questions = response.text.splitlines()
+    except Exception:
+        app.logger.info(f"{event_id}: failed generating common questions: {sourceId}")
+
+    # Remove unnecessary numbers (1. ,2. ,3. ) or hyphens (- ) at the beginning of the questions.
+    for raw_question in raw_questions:
+        question = raw_question.split(' ')[1] if ' ' in raw_question else raw_question
+        # Skip if the question is too short
+        if len(question) < MEANINGFUL_MINIMUM_QUESTION_LENGTH:
+            app.logger.info(f"{event_id}: skipping generated common question: {question}")
+            continue
+        questions.append(question)
+
+    # Delete duplicate questions
+    questions = list(set(questions))
+
+    doc_ref.update({"questions": questions})
+    app.logger.info(f"{event_id}: finished generating common questions: {len(questions)} questions -> {sourceId}")
 
     return ("finished", 204)
 

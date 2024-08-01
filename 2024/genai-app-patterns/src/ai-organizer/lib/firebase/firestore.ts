@@ -30,6 +30,7 @@ export type Source = {
   status: 'creating' | 'created' | 'deleting' | 'error';
   downloadURL: string;
   summarization: string | null;
+  questions: string[] | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 };
@@ -81,7 +82,8 @@ export const addSource = async (
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     downloadURL: downloadURL,
-    summarization: null
+    summarization: null,
+    questions: null
   });
   await updateDoc(doc(db, 'users', uid, 'notebooks', notebookId), {
     sourceCount: increment(1)

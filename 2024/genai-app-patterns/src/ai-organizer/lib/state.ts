@@ -13,9 +13,19 @@ const notebooksAtom = atom<Notebook[]>([]);
 const userAtom = atom<User | null>(null);
 const messageAtom = atom('');
 const sourceAtom = atom<Source | null>(null);
+const commonQuestionsAtom = atom<string[]>((get) => {
+  const commonQuestions: string[] = [];
+  get(sourcesAtom).map((source) => {
+    if (source.selected && source.questions) {
+      commonQuestions.push(...source.questions);
+    }
+  });
+  return commonQuestions;
+});
 
 export {
   chatMessagesAtom,
+  commonQuestionsAtom,
   messageAtom,
   notebooksAtom,
   notesAtom,
