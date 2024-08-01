@@ -247,7 +247,7 @@ gcloud run deploy ai-organizer \
 
 コマンド実行中の出力に `Building Container... Logs are available at [https://console.cloud.google.com/〜]` と記載があります。
 
-ここで `https://console.〜` の URL をクリックすると、リアルタイムのコンテナビルドログを確認できます。
+ここで `https://console.〜` の URL をコピーし (URL をカーソルでなぞると自動的にコピーされます) ブラウザの新しいタブにペーストし開くと、リアルタイムのコンテナビルドログを確認できます。
 
 ## **生成 AI 関連機能 (GenAI backend) の追加**
 
@@ -393,6 +393,7 @@ ERROR: (gcloud.eventarc.triggers.create) FAILED_PRECONDITION: Invalid resource s
 これを解決するために以下の設定を行います。
 
 - 各非同期処理の処理待ち時間を 300 秒 (5 分) に修正
+- 最小リトライの間隔を 300 秒 (5 分) に修正
 - 合計 5 回非同期の処理に失敗したら、リトライをやめる (デッドレタートピックに入れる)
 
 ### **1. デッドレタートピックの作成**
@@ -408,23 +409,15 @@ PROJECT_NUMBER=$(gcloud projects describe $GOOGLE_CLOUD_PROJECT --format="value(
 gcloud pubsub topics add-iam-policy-binding genai-backend-dead-letter \
   --member="serviceAccount:service-$PROJECT_NUMBER@gcp-sa-pubsub.iam.gserviceaccount.com" \
   --role="roles/pubsub.publisher"
-SUBSCRIPTIONS=$(gcloud pubsub subscriptions list --format json | jq -r '.[].name')
-for SUBSCRIPTION in $SUBSCRIPTIONS
-do gcloud pubsub subscriptions add-iam-policy-binding $SUBSCRIPTION \
-    --member="serviceAccount:service-$PROJECT_NUMBER@gcp-sa-pubsub.iam.gserviceaccount.com" \
-    --role="roles/pubsub.subscriber"
-done
 ```
 
-### **3. デッドレタートピックの設定、サブスクリプションの確認応答時間の修正**
+### **3. デッドレタートピックの設定、サブスクリプションの処理待ち時間、最小リトライ間隔の修正**
 
 ```bash
-SUBSCRIPTIONS=$(gcloud pubsub subscriptions list --format json | jq -r '.[].name')
-for SUBSCRIPTION in $SUBSCRIPTIONS
-do gcloud pubsub subscriptions update $SUBSCRIPTION \
-    --ack-deadline 300 \
-    --dead-letter-topic genai-backend-dead-letter
-done
+./scripts/setup_eventarc_subscription.sh genai-backend-add-user && \
+./scripts/setup_eventarc_subscription.sh genai-backend-add-source && \
+./scripts/setup_eventarc_subscription.sh genai-backend-update-source && \
+./scripts/setup_eventarc_subscription.sh genai-backend-question
 ```
 
 ## **ソースデータに基づいた回答生成**
@@ -442,12 +435,12 @@ RAG は一般的に大きくデータを準備する前処理と、質問への�
 1. エンべディング化
 1. データのインデックス化
 
-上記の一連の手続きがソースコードでは<walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="113" endLine="119" startCharacterOffset="4" endCharacterOffset="5">こちら</walkthrough-editor-select-line>に該当します。
+上記の一連の手続きがソースコードでは<walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="114" endLine="120" startCharacterOffset="4" endCharacterOffset="5">こちら</walkthrough-editor-select-line>に該当します。
 
 質問への回答生成は以下の手順で行われ、ソースコードの該当箇所を示します。
 
-1. <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="171" endLine="184" startCharacterOffset="4" endCharacterOffset="5">質問に関連するデータをインデックスから取得</walkthrough-editor-select-line>
-1. <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="186" endLine="190" startCharacterOffset="4" endCharacterOffset="5">インデックスから取得したデータと質問を合わせて回答を生成</walkthrough-editor-select-line>
+1. <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="170" endLine="183" startCharacterOffset="4" endCharacterOffset="5">質問に関連するデータをインデックスから取得</walkthrough-editor-select-line>
+1. <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="185" endLine="189" startCharacterOffset="4" endCharacterOffset="5">インデックスから取得したデータを生成 AI にセット</walkthrough-editor-select-line>
 
 ## **マルチターンの質問回答**
 
@@ -459,8 +452,8 @@ RAG は一般的に大きくデータを準備する前処理と、質問への�
 
 具体的な処理部分を以下に示します。
 
-- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="192" endLine="198" startCharacterOffset="4" endCharacterOffset="5">過去の履歴を取得</walkthrough-editor-select-line>
-- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="206" endLine="206" startCharacterOffset="8" endCharacterOffset="65">過去の履歴を含め質問を送信</walkthrough-editor-select-line>
+- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="191" endLine="197" startCharacterOffset="4" endCharacterOffset="5">過去の履歴を取得</walkthrough-editor-select-line>
+- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="205" endLine="205" startCharacterOffset="8" endCharacterOffset="65">過去の履歴を含め質問を送信</walkthrough-editor-select-line>
 
 ## **AI organizer の試用**
 
@@ -490,16 +483,19 @@ gcloud run services describe ai-organizer --region asia-northeast1 --format json
 
 1. 左メニューの中の `ソース` の右にある ＋ のようなアイコンをクリックします。
 1. 手持ちの PDF、または以下のサンプル PDF をダウンロードし、アップロードします。
-1. 少し待つと読み込み処理が完了し、ロード中マークが消えます。
+1. 少し待つと読み込み処理が完了し、ロード中のスピナーが消えます。
 
 **サンプル PDF 一覧**
 
-- [Cloud Run](https://storage.googleapis.com/genai-handson-20230929/CloudRun.pdf)
-- [Cloud SQL](https://storage.googleapis.com/genai-handson-20230929/CloudSQL.pdf)
-- [Cloud Storage for Firebase](https://storage.googleapis.com/genai-handson-20230929/CloudStorageforFirebase.pdf)
-- [Firebase Authentication](https://storage.googleapis.com/genai-handson-20230929/FirebaseAuthentication.pdf)
-- [Firestore](https://storage.googleapis.com/genai-handson-20230929/Firestore.pdf)
-- [Palm API と LangChain の連携](https://storage.googleapis.com/genai-handson-20230929/PalmAPIAndLangChain.pdf)
+[Google Cloud ホワイトペーパー](https://cloud.google.com/whitepapers?hl=ja) で公開されている PDF ファイルをダウンロードしてください。
+
+- [クラウドチームの編成](https://services.google.com/fh/files/misc/designing_cloud_teams.pdf)
+- [Google Cloud の AI 導入フレームワーク](https://services.google.com/fh/files/misc/ai_adoption_framework_whitepaper.pdf)
+- [Google Cloud 導入フレームワーク](https://services.google.com/fh/files/misc/google_cloud_adoption_framework_whitepaper.pdf)
+- [統合データ分析プラットフォームの構築](https://services.google.com/fh/files/misc/googlecloud_unified_analytics_data_platform_paper_2021.pdf)
+- [データベースを強みにする](https://services.google.com/fh/files/misc/guide_to_google_cloud_databases.pdf)
+- [クラウドのデータ ガバナンスに関する原則とベスト プラクティス](https://services.google.com/fh/files/misc/principles_best_practices_for_data-governance.pdf)
+- [マイクロサービスでクラウド ネイティブなアプローチを採用](https://cloud.google.com/files/Cloud-native-approach-with-microservices.pdf)
 
 ### **5. ソースに関連する質問**
 
@@ -524,6 +520,100 @@ gcloud run services describe ai-organizer --region asia-northeast1 --format json
 新しいユーザーを作成し、動作を確認してみてください。
 
 ユーザーごとにデータが分けられて管理されており、先程アップロードしたデータは見えないことがわかります。
+
+## **要約生成機能の追加**
+
+新機能として、生成 AI を利用したドキュメントの要約生成機能を追加します。
+
+ここでも非同期での連携方式を採用します。
+
+すでに GenAI backend には該当のソースコードは含まれているため、Eventarc を利用した連携を設定します。
+
+### **1. Eventarc トリガーの作成**
+
+```bash
+gcloud eventarc triggers create genai-backend-summarize \
+  --location=asia-northeast1 \
+  --destination-run-service=genai-backend  \
+  --destination-run-region=asia-northeast1 \
+  --event-filters="type=google.cloud.firestore.document.v1.created" \
+  --event-filters="database=(default)" \
+  --event-filters-path-pattern="document=users/{uid}/notebooks/{notebookId}/sources/{sourceId}" \
+  --service-account=genai-backend-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
+  --event-data-content-type="application/protobuf" \
+  --destination-run-path="/summarize"
+```
+
+ソースデータが Firestore に新規作成されたときに、GenAI backend サービス (Cloud Run) のパス (/summarize) を呼び出します。
+
+### **2. デッドレタートピックの設定、サブスクリプションの処理待ち時間、最小リトライ間隔の修正**
+
+```bash
+./scripts/setup_eventarc_subscription.sh genai-backend-summarize
+```
+
+### **3. ソースコードのポイント**
+
+ファイルの要約は様々な作成の方法があります。
+
+例えば、長いファイルは細かく分割しながら処理をしていくなどの方法があります。
+
+今回は Gemini 1.5 Flash の特徴である、**ロングコンテキスト (100 万トークン) の入力を活かし特別な処理無しに一回でファイルを読み込み**、要約を生成しています。
+
+- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="290" endLine="295" startCharacterOffset="4" endCharacterOffset="6">要約生成のプロンプト</walkthrough-editor-select-line>
+- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="299" endLine="299" startCharacterOffset="8" endCharacterOffset="87">要約を生成</walkthrough-editor-select-line>
+
+### **4. 要約生成機能の試用**
+
+なにかソースファイルをアップロードしてみてください。
+
+ソースファイルに対する要約が生成されると、**ファイル名が太字で表示**され、**ファイル名をクリック**すると要約が確認可能です。
+
+## **一般的な質問生成機能の追加**
+
+中身をあまり理解していないドキュメントをアップロードした場合、質問を考えるのも難しい場合があります。
+
+そこで新機能としてドキュメントに関する一般的な質問を生成する機能を追加します。
+
+ここでも非同期での連携方式を採用し、すでに GenAI backend には該当のソースコードは含まれているため、Eventarc を利用した連携を設定します。
+
+### **1. Eventarc トリガーの作成**
+
+```bash
+gcloud eventarc triggers create genai-backend-generate-common-questions \
+  --location=asia-northeast1 \
+  --destination-run-service=genai-backend  \
+  --destination-run-region=asia-northeast1 \
+  --event-filters="type=google.cloud.firestore.document.v1.created" \
+  --event-filters="database=(default)" \
+  --event-filters-path-pattern="document=users/{uid}/notebooks/{notebookId}/sources/{sourceId}" \
+  --service-account=genai-backend-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
+  --event-data-content-type="application/protobuf" \
+  --destination-run-path="/generate_common_questions"
+```
+
+ソースデータが Firestore に新規作成されたときに、GenAI backend サービス (Cloud Run) のパス (/generate_common_questions) を呼び出します。
+
+### **2. デッドレタートピックの設定、サブスクリプションの処理待ち時間、最小リトライ間隔の修正**
+
+```bash
+./scripts/setup_eventarc_subscription.sh genai-backend-generate-common-questions
+```
+
+### **3. ソースコードのポイント**
+
+ここでも Gemini 1.5 Flash の特徴である **ロングコンテキスト** を活かして、プロンプトだけで質問例を生成しています。
+
+- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="335" endLine="339" startCharacterOffset="4" endCharacterOffset="73">質問生成のプロンプト</walkthrough-editor-select-line>
+- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="345" endLine="345" startCharacterOffset="8" endCharacterOffset="87">質問を生成</walkthrough-editor-select-line>
+
+### **4. 質問生成機能の試用**
+
+なにかソースファイルをアップロードしてみてください。
+
+ソースファイルに対する質問が生成されると、ソースファイルを選択 (チェックボックスを選択) すると、質問文を入力するフォームの上に質問文例が表示されます。
+
+質問例をクリックをすると、その質問を投げることができます。
 
 ## **Congratulations!**
 
