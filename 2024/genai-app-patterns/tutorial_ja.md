@@ -433,12 +433,12 @@ RAG は一般的に大きくデータを準備する前処理と、質問への�
 1. エンべディング化
 1. データのインデックス化
 
-上記の一連の手続きがソースコードでは<walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="114" endLine="120" startCharacterOffset="4" endCharacterOffset="5">こちら</walkthrough-editor-select-line>に該当します。
+上記の一連の手続きがソースコードでは<walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="65" endLine="74" startCharacterOffset="0" endCharacterOffset="5">こちら</walkthrough-editor-select-line>に該当します。
 
 質問への回答生成は以下の手順で行われ、ソースコードの該当箇所を示します。
 
-1. <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="170" endLine="183" startCharacterOffset="4" endCharacterOffset="5">質問に関連するデータをインデックスから取得</walkthrough-editor-select-line>
-1. <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="185" endLine="189" startCharacterOffset="4" endCharacterOffset="5">インデックスから取得したデータを生成 AI にセット</walkthrough-editor-select-line>
+1. <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="176" endLine="189" startCharacterOffset="4" endCharacterOffset="5">質問に関連するデータをインデックスから取得</walkthrough-editor-select-line>
+1. <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="191" endLine="195" startCharacterOffset="4" endCharacterOffset="5">インデックスから取得したデータを生成 AI にセット</walkthrough-editor-select-line>
 
 ## **マルチターンの質問回答**
 
@@ -450,8 +450,8 @@ RAG は一般的に大きくデータを準備する前処理と、質問への�
 
 具体的な処理部分を以下に示します。
 
-- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="191" endLine="197" startCharacterOffset="4" endCharacterOffset="5">過去の履歴を取得</walkthrough-editor-select-line>
-- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="205" endLine="205" startCharacterOffset="8" endCharacterOffset="65">過去の履歴を含め質問を送信</walkthrough-editor-select-line>
+- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="197" endLine="203" startCharacterOffset="4" endCharacterOffset="5">過去の履歴を取得</walkthrough-editor-select-line>
+- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="212" endLine="212" startCharacterOffset="8" endCharacterOffset="65">過去の履歴を含め質問を送信</walkthrough-editor-select-line>
 
 ## **AI organizer の試用 (ユーザー登録からソースのアップロード)**
 
@@ -603,8 +603,8 @@ gcloud eventarc triggers create genai-backend-summarize \
 
 今回は Gemini 1.5 Flash の特徴である、**ロングコンテキスト (100 万トークン) の入力を活かし特別な処理無しに一回でファイルを読み込み**、要約を生成しています。
 
-- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="290" endLine="295" startCharacterOffset="4" endCharacterOffset="6">要約生成のプロンプト</walkthrough-editor-select-line>
-- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="299" endLine="299" startCharacterOffset="8" endCharacterOffset="87">要約を生成</walkthrough-editor-select-line>
+- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="296" endLine="301" startCharacterOffset="4" endCharacterOffset="6">要約生成のプロンプト</walkthrough-editor-select-line>
+- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="305" endLine="305" startCharacterOffset="8" endCharacterOffset="87">要約を生成</walkthrough-editor-select-line>
 
 ### **4. 要約生成機能の試用**
 
@@ -647,8 +647,8 @@ gcloud eventarc triggers create genai-backend-generate-common-questions \
 
 ここでも Gemini 1.5 Flash の特徴である **ロングコンテキスト** を活かして、プロンプトだけで質問例を生成しています。
 
-- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="335" endLine="339" startCharacterOffset="4" endCharacterOffset="73">質問生成のプロンプト</walkthrough-editor-select-line>
-- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="345" endLine="345" startCharacterOffset="8" endCharacterOffset="87">質問を生成</walkthrough-editor-select-line>
+- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="341" endLine="345" startCharacterOffset="4" endCharacterOffset="73">質問生成のプロンプト</walkthrough-editor-select-line>
+- <walkthrough-editor-select-line filePath="./next-tokyo-assets/2024/genai-app-patterns/src/genai-backend/main.py" startLine="351" endLine="351" startCharacterOffset="8" endCharacterOffset="87">質問を生成</walkthrough-editor-select-line>
 
 ### **4. 質問生成機能の試用**
 

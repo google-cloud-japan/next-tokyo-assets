@@ -5,6 +5,7 @@ import vertexai
 from cloudevents.http import from_http
 from flask import Flask, request
 from google.cloud import firestore, storage
+from tenacity import retry, wait_exponential
 from vertexai.generative_models import Content, GenerationConfig, Part
 from vertexai.preview import rag
 from vertexai.preview.generative_models import GenerativeModel, Tool
@@ -62,6 +63,17 @@ bucket_name = f"{PROJECT_ID}.appspot.com"
 vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
 db = firestore.Client()
 
+# Retry with exponential backoff since only one file can be imported at the same time
+@retry(wait=wait_exponential(multiplier=5, max=40))
+def import_files(corpus_name, gcs_path):
+    return rag.import_files(
+        corpus_name,
+        [gcs_path],
+        chunk_size=RAG_CHUNK_SIZE,
+        chunk_overlap=RAG_CHUNK_OVERLAP,
+        max_embedding_requests_per_min=RAG_MAX_EMBEDDING_REQUESTS_PER_MIN,
+    )
+
 @app.route("/add_user", methods=["POST"])
 def add_user():
     event = from_http(request.headers, request.get_data())
@@ -112,13 +124,7 @@ def add_source():
     gcs_path = f"gs://{PROJECT_ID}.appspot.com{storagePath}"
 
     app.logger.info(f"{event_id}: start importing a source file: {name}")
-    response = rag.import_files(
-        corpus_name,
-        [gcs_path],
-        chunk_size=RAG_CHUNK_SIZE,
-        chunk_overlap=RAG_CHUNK_OVERLAP,
-        max_embedding_requests_per_min=RAG_MAX_EMBEDDING_REQUESTS_PER_MIN,
-    )
+    response = import_files(corpus_name, gcs_path)
     app.logger.info(f"{event_id}: finished importing a source file: {response}")
 
     app.logger.info(f"{event_id}: start finding rag_file_id: {name}")
