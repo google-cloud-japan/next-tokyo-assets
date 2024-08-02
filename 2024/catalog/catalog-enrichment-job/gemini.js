@@ -37,7 +37,8 @@ async function generate(uri, prompt) {
       }
       const content = await model.generateContent(request)
     const response = await content.response
-    return response.candidates[0].content.parts[0].text
+    const text = response.candidates[0].content.parts[0].text
+    return text
 }
 
 module.exports = { generate }

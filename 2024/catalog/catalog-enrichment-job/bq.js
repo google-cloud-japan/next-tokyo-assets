@@ -18,7 +18,7 @@ async function insertProduct(productId, image, product) {
     (id, image, title, categories, description, tags)
     VALUES (
         "${productId}", 
-        "${image}", agent
+        "${image}",
         ${JSON.stringify(product.title)}, 
         ${JSON.stringify(product.categories)}, 
         ${JSON.stringify(product.description)}, 

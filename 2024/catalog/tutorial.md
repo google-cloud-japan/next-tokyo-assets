@@ -219,7 +219,7 @@ gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
      --role "roles/storage.objectViewer"
 ```
 
-ワークフローの定義は `workflow1.yaml` に書かれています。この定義を使って、gcloud コマンドでワークフローを作成します。
+ワークフローの定義は `workflow.yaml` に書かれています。この定義を使って、gcloud コマンドでワークフローを作成します。
 
 カレントが `catalog-enrichment-job` ディレクトリの場合は、一階層上のディレクトリに移動してから実行します。
 

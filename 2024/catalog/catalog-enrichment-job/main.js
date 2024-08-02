@@ -9,9 +9,9 @@ const prompt = `
 レスポンスには次の属性を含めてください。
 JSON 形式で出力してください。
 
-- title : 商品紹介ページのタイトルに表示する、魅力的な商品名。文字列。
+- title : 商品紹介ページのタイトルに表示する、魅力的な商品名。String。
+- description : 商品を紹介する説明文。String。
 - categories : 商品のカテゴリ。文字列の配列。
-- description : 商品を紹介する説明文。文字列。
 - tags : 商品のハッシュタグ。文字列の配列。
 `
 
@@ -42,7 +42,6 @@ const main = async (product) => {
   const uri = `gs://${config.bucket}/${product.name}`
   console.info(`uri = ${uri}`)
   const response = await generate(uri, prompt)
-  console.log(response)
   const parsedResponse = JSON.parse(response)
   await insertProduct(productId, product.name, parsedResponse)
   console.info(`success product id = ${productId}`)
