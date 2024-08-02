@@ -59,6 +59,7 @@ gcloud CLI に、デフォルトの設定を行っておきます。この設定
 ```bash
 gcloud config set project ${GOOGLE_CLOUD_PROJECT}
 gcloud config set run/region asia-northeast1
+gcloud config set workflows/location asia-northeast1
 ```
 
 ### **3. 使用するサービスの API の有効化**
@@ -70,6 +71,7 @@ gcloud services enable bigquery.googleapis.com
 gcloud services enable aiplatform.googleapis.com
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
 gcloud services enable workflows.googleapis.com
+gcloud services enable cloudresourcemanager.googleapis.com
 ```
 
 ## 商品画像ファイルを Cloud Storage にアップロードする
@@ -81,7 +83,7 @@ gcloud services enable workflows.googleapis.com
 まずは、専用の Cloud Storage バケットを新規作成します。
 
 ```bash
-gcloud storage buckets create gs://products-${GOOGLE_CLOUD_PROJECT} --region asia-northeast1
+gcloud storage buckets create gs://products-${GOOGLE_CLOUD_PROJECT} --location asia-northeast1
 ```
 
 次に、商品画像がすでにアップロードされている Cloud Storage バケットから、新規作成した Cloud Storage バケットに画像ファイルをコピーします。
@@ -105,13 +107,13 @@ JSON ファイルのデータから、BigQuery テーブルを作成します。
 まず、BigQuery データセットを作成します。
 
 ```bash
-bq mk --dataset ${GOOGLE_CLOUD_PROJECT}:products
+bq mk --dataset ${GOOGLE_CLOUD_PROJECT}:catalog
 ```
 
 データセットが作成できたら、そのデータセットに新規テーブルを作成します。スキーマ定義は予め用意してある `schema.json` を使用します。このスキーマには、このあと Gemini を使って生成するタイトルや説明などのカラムが定義されています。
 
 ```bash
-bq mk --table ${GOOGLE_CLOUD_PROJECT}:products.products ./schema.json
+bq mk --table ${GOOGLE_CLOUD_PROJECT}:catalog.products ./schema.json
 ```
 
 ## Cloud Run Jobs のジョブを作成する
@@ -136,16 +138,20 @@ BigQuery のテーブルへの読み書きができる権限と Vertex AI の Ge
 
 ```bash
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
-     --member "serviceAccount:catalog-enrichment-job-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com" \
+     --member "serviceAccount:catalog-enrichment-job-sa@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" \
      --role "roles/bigquery.dataEditor"
 
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
-     --member "serviceAccount:catalog-enrichment-job-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com" \
+     --member "serviceAccount:catalog-enrichment-job-sa@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" \
      --role "roles/bigquery.jobUser"
 
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
-     --member "serviceAccount:catalog-enrichment-job-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com" \
+     --member "serviceAccount:catalog-enrichment-job-sa@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" \
      --role "roles/aiplatform.user"
+
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+     --member "serviceAccount:catalog-enrichment-job-sa@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" \
+     --role "roles/storage.objectViewer"
 ```
 
 次に、Cloud Run Jobs のジョブを gcloud コマンドで作成します。
@@ -157,11 +163,20 @@ gcloud run jobs deploy catalog-enrichment-job \
   --source . \
   --tasks 1 \
   --max-retries 1 \
-  --service-account "catalog-enrichment-job-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com" \
+  --service-account "catalog-enrichment-job-sa@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" \
   --set-env-vars "PROJECT_ID=${GOOGLE_CLOUD_PROJECT}" \
   --set-env-vars "REGION=asia-northeast1" \
-  --set-env-vars "TABLE_ID=${GOOGLE_CLOUD_PROJECT}.products.products" \
+  --set-env-vars "TABLE_ID=${GOOGLE_CLOUD_PROJECT}.catalog.products" \
   --set-env-vars "BUCKET=products-${GOOGLE_CLOUD_PROJECT}"
+```
+
+デプロイが失敗する場合は、Cloud Build に割り当てられているサービスアカウントの権限が不足していることが考えられます。その場合は次のコマンドを実行し、Cloud Storage 管理者権限を付与してから再実行してみてください。
+
+```bash
+PROJECT_NUMBER=$(gcloud projects list --filter="$(gcloud config get-value project)" --format="value(PROJECT_NUMBER)")
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+     --member "serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
+     --role "roles/storage.admin"
 ```
 
 ここでは、タスク数を 1 としています。実際のタスク数は商品数に応じて決まるように設定する必要がありますが、ワークフローを作成するステップで設定します。
@@ -215,8 +230,8 @@ cd ../
 ```bash
 gcloud workflows deploy catalog-enrichment-workflow \
   --source=workflow1.yaml \
-  --service-account=catalog-enrichment-workflow-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
-  --set-env-vars BUCKET=products-${GOOGLE_CLOUD_PROJECT},TABLE_ID=${GOOGLE_CLOUD_PROJECT}.products.products,JOB_NAME=catalog-enrichment-job,REGION=asia-northeast1
+  --service-account=catalog-enrichment-workflow-sa@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com \
+  --set-env-vars BUCKET=products-${GOOGLE_CLOUD_PROJECT},TABLE_ID=${GOOGLE_CLOUD_PROJECT}.catalog.products,JOB_NAME=catalog-enrichment-job,REGION=asia-northeast1
 ```
 
 作成したら、ワークフローを実行します。
@@ -255,8 +270,8 @@ Vertex AI Search for Retail では、インポートすることができる商�
 ```bash
 bq mk \
   --use_legacy_sql=false \
-  --view "SELECT id, title, categories, description, [STRUCT(CONCAT(\"https://storage.cloud.google.com/products-${GOOGLE_CLOUD_PROJECT}/\", image) as uri)] as images FROM \`${GOOGLE_CLOUD_PROJECT}.products.products\`" \
-  "${GOOGLE_CLOUD_PROJECT}:products.view_tmp"
+  --view "SELECT id, title, categories, description, [STRUCT(CONCAT(\"https://storage.cloud.google.com/products-${GOOGLE_CLOUD_PROJECT}/\", image) as uri)] as images FROM \`${GOOGLE_CLOUD_PROJECT}.catalog.products\`" \
+  "${GOOGLE_CLOUD_PROJECT}:catalog.products_view"
 ```
 
 Vertex AI Search for Retail に商品カタログデータをインポートします。Vertex AI Search for Retail の API はサービスアカウントからしか呼び出せないため、サービスアカウントを作成し、サービスアカウントからインポート API を呼び出します。
@@ -279,7 +294,7 @@ gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
      --role "roles/retail.editor"
 ```
 
-サービスアカウントの認証情報をダウンロードし、`gcloud` コマンドが認証情報を使って実行されるように設定します。
+サービスアカウントの認証情報をダウンロードし、`gcloud` コマンドが認証情報を使って実行されるように設定します。URL が表示されるので、アクセスし画面の指示通りに認証を行います。
 
 ```bash
 gcloud auth application-default login --impersonate-service-account retail-api-client-sa@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com
@@ -290,10 +305,10 @@ gcloud auth application-default login --impersonate-service-account retail-api-c
 ```bash
 curl --request POST \
   "https://retail.googleapis.com/v2/projects/${GOOGLE_CLOUD_PROJECT}/locations/global/catalogs/default_catalog/branches/default_branch/products:import" \
-  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account retail-api-client-sa@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com)" \
+  --header "Authorization: Bearer $(gcloud auth application-default print-access-token --impersonate-service-account retail-api-client-sa@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com)" \
   --header 'Accept: application/json' \
   --header 'Content-Type: application/json' \
-  --data "{\"inputConfig\":{\"bigQuerySource\":{\"tableId\":\"view\",\"datasetId\":\"products\",\"projectId\":\"${GOOGLE_CLOUD_PROJECT}\"}}}" \
+  --data "{\"inputConfig\":{\"bigQuerySource\":{\"tableId\":\"products_view\",\"datasetId\":\"catalog\",\"projectId\":\"${GOOGLE_CLOUD_PROJECT}\"}}}" \
   --compressed
 ```
 
