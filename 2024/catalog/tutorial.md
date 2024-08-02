@@ -8,7 +8,7 @@
 
 - Gemini API を使ったマルチモーダル推論
 - Workflows の一連のステップのオーケストレーション
-- Cloud Run Jobs の並列バッチ処理
+- Cloud Run サービスの並列処理
 - BigQuery へのデータインポート
 - Vertex AI Search for Retail へのデータインポート
 - Vertex AI Search for Retail の検索の評価
@@ -69,7 +69,9 @@ Google Cloud では、プロジェクトで使用するサービスの API を�
 ```bash
 gcloud services enable bigquery.googleapis.com
 gcloud services enable aiplatform.googleapis.com
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
+gcloud services enable run.googleapis.com 
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable artifactregistry.googleapis.com
 gcloud services enable workflows.googleapis.com
 gcloud services enable cloudresourcemanager.googleapis.com
 ```
@@ -116,17 +118,17 @@ bq mk --dataset ${GOOGLE_CLOUD_PROJECT}:catalog
 bq mk --table ${GOOGLE_CLOUD_PROJECT}:catalog.products ./schema.json
 ```
 
-## Cloud Run Jobs のジョブを作成する
+## Cloud Run サービスを作成する
 
-画像から商品情報を生成するリクエストを送る、並列処理させるジョブを Cloud Run Jobs を使って構築します。
+画像から商品情報を生成するリクエストを送る、並列処理させるタスクを Cloud Run サービスを使って構築します。
 
-リポジトリ内の `catalog-enrichment-job` が Cloud Run Jobs で使用するアプリケーション コードです。
+リポジトリ内の `catalog-enrichment-job` が Cloud Run サービスで使用するアプリケーション コードです。
 
 ```bash
 cd catalog-enrichment-job
 ```
 
-処理を行うジョブは Gemini の呼び出しと BigQuery テーブルの読み書きを行います。そのため、ジョブに割り当てるサービスアカウントを作成し、BigQuery と Vertex AI の権限を付与します。
+処理を行うサービスは Gemini の呼び出しと BigQuery テーブルの読み書きを行います。そのため、サービスに割り当てるサービスアカウントを作成し、BigQuery と Vertex AI の権限を付与します。
 
 サービスアカウントの作成と権限の付与は gcloud コマンドから行うことができます。
 
@@ -154,20 +156,26 @@ gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
      --role "roles/storage.objectViewer"
 ```
 
-次に、Cloud Run Jobs のジョブを gcloud コマンドで作成します。
+次に、Cloud Run サービスを gcloud コマンドで作成します。
 
-`gcloud run jobs deploy` コマンドを使用することで、ソースコードのアップロード、コンテナイメージのビルド、コンテナイメージのプッシュ、そして Cloud Run Jobs のジョブの作成を一度に行うことができます。
+`gcloud run deploy` コマンドを使用することで、ソースコードのアップロード、コンテナイメージのビルド、コンテナイメージのプッシュ、そして Cloud Run サービスの作成を一度に行うことができます。
 
 ```bash
-gcloud run jobs deploy catalog-enrichment-job \
+gcloud run deploy catalog-enrichment-job \
   --source . \
-  --tasks 1 \
-  --max-retries 1 \
   --service-account "catalog-enrichment-job-sa@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com" \
   --set-env-vars "PROJECT_ID=${GOOGLE_CLOUD_PROJECT}" \
   --set-env-vars "REGION=asia-northeast1" \
-  --set-env-vars "TABLE_ID=${GOOGLE_CLOUD_PROJECT}.catalog.products" \
-  --set-env-vars "BUCKET=products-${GOOGLE_CLOUD_PROJECT}"
+  --set-env-vars "TABLE_ID=${GOOGLE_CLOUD_PROJECT}.products.products" \
+  --set-env-vars "BUCKET=products-${GOOGLE_CLOUD_PROJECT}" \
+  --allow-unauthenticated \
+  --port 3000
+```
+
+デプロイ後、画面に表示される URL を環境変数にセットしておきます。
+
+```bash
+export URL="<Cloud Run の URL>"
 ```
 
 デプロイが失敗する場合は、Cloud Build に割り当てられているサービスアカウントの権限が不足していることが考えられます。その場合は次のコマンドを実行し、Cloud Storage 管理者権限を付与してから再実行してみてください。
@@ -179,8 +187,6 @@ gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
      --role "roles/storage.admin"
 ```
 
-ここでは、タスク数を 1 としています。実際のタスク数は商品数に応じて決まるように設定する必要がありますが、ワークフローを作成するステップで設定します。
-
 Artifact Registry をプロジェクトで一度も使用したことがない場合、次のメッセージが表示されることがあります。`Y` で続行してください。
 
 ```
@@ -190,14 +196,14 @@ created.
 Do you want to continue (Y/n)?
 ```
 
-Cloud Run Jobs のコンソールで、ジョブが作成されていることが確認できます。
+Cloud Run サービスのコンソールで、サービスが作成されていることが確認できます。
 
 ## Workflows のワークフローを作成する
 
 Workflows では、次のステップを順に処理するワークフローを作成します。
 
 1. Cloud Storage バケットのオブジェクト リストを取得する
-2. Cloud Run Jobs で商品数と同じタスク数のジョブを実行する
+2. Cloud Run サービスで商品ごとにリクエストする
 
 まず、ワークフローに割り当てるサービスアカウントを作成します。
 
@@ -205,16 +211,12 @@ Workflows では、次のステップを順に処理するワークフローを�
 gcloud iam service-accounts create catalog-enrichment-workflow-sa
 ```
 
-サービスアカウントには、Cloud Storage バケットの読み取り権限と Cloud Run Jobs のジョブの実行権限を付与します。
+サービスアカウントには、Cloud Storage バケットの読み取り権限の実行権限を付与します。
 
 ```bash
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
      --member "serviceAccount:catalog-enrichment-workflow-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com" \
      --role "roles/storage.objectViewer"
-
-gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
-     --member "serviceAccount:catalog-enrichment-workflow-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com" \
-     --role "roles/run.developer"
 ```
 
 ワークフローの定義は `workflow1.yaml` に書かれています。この定義を使って、gcloud コマンドでワークフローを作成します。
@@ -229,9 +231,9 @@ cd ../
 
 ```bash
 gcloud workflows deploy catalog-enrichment-workflow \
-  --source=workflow1.yaml \
+  --source=workflow.yaml \
   --service-account=catalog-enrichment-workflow-sa@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com \
-  --set-env-vars BUCKET=products-${GOOGLE_CLOUD_PROJECT},TABLE_ID=${GOOGLE_CLOUD_PROJECT}.catalog.products,JOB_NAME=catalog-enrichment-job,REGION=asia-northeast1
+  --set-env-vars BUCKET=products-${GOOGLE_CLOUD_PROJECT},URL=${URL}
 ```
 
 作成したら、ワークフローを実行します。
@@ -244,9 +246,9 @@ BigQuery にインポート済みの、全ての商品に対してタイトル�
 
 注 : ワークフローの実行でエラーが出る場合は、サービスアカウントへの実行権限の付与に時間がかかっている可能性があります。エラーが出た場合は数分待ってから再実行してみてください。
 
-ワークフローの実行が完了したら、Cloud Run Jobs コンソールからジョブが問題なく完了していることを確認しましょう。
+ワークフローの実行が完了したら、コンソールでワークフローが問題なく完了していることを確認しましょう。
 
-ジョブが正常に完了していれば、BigQuery テーブルに生成された商品情報が保存されています。BigQuery コンソールから確認してみましょう。
+正常に完了していれば、BigQuery テーブルに生成された商品情報が保存されています。BigQuery コンソールから確認してみましょう。
 
 ## Vertex AI Search for Retail の利用を開始する
 

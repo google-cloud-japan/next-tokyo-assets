@@ -1,0 +1,30 @@
+main:
+    steps:
+        - init:
+            assign:
+                - project_id: ${sys.get_env("GOOGLE_CLOUD_PROJECT_ID")}
+                - bucket: ${sys.get_env("BUCKET")}
+                - service_url: ${sys.get_env("URL")}
+        - get_objects:
+            call: googleapis.storage.v1.objects.list
+            args:
+                bucket: ${bucket}
+            result: object
+        - parallel_job:
+            parallel:
+              for:
+                in: ${object.items}
+                index: i
+                value: item
+                steps:
+                  - invoke:
+                      call: http.post
+                      args:
+                        url: ${service_url + "/gen"}
+                        headers:
+                          'Content-Type': 'application/json'
+                        body:
+                          product: ${item}
+                      result: result
+        - finish:
+            return: 'end'
