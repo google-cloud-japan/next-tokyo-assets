@@ -5,7 +5,7 @@ const config = require('./config')
 
 const vertexAI = new VertexAI({ project: config.project, location: config.region })
 const model = vertexAI.preview.getGenerativeModel({
-    model: 'gemini-1.5-pro',
+    model: 'gemini-1.5-flash',
     generationConfig: {
         maxOutputTokens: 2048,
         temperature: 0.4,
