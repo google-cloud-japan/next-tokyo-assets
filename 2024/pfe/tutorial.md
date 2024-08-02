@@ -79,7 +79,7 @@ gcloud config set compute/region asia-northeast1 && gcloud config set compute/zo
 
 ## **参考: Cloud Shell の接続が途切れてしまったときは?**
 
-一定時間非アクティブ状態になる、またはブラウザが固まってしまったなどで `Cloud Shell` が切れてしまう、またはブラウザのリロードが必要になる場合があります。その場合は以下の対応を行い、チュートリアルを再開してください。
+一定時間非アクティブ状態になる、またはブラウザが固まってしまったなどで `Cloud Shell` が切断する、またはブラウザのリロードが必要になる場合があります。その場合は以下の対応を行い、チュートリアルを再開してください。
 
 ### **01. チュートリアル資材があるディレクトリに移動する**
 
@@ -250,6 +250,7 @@ gcloud container fleet scopes create app-a-team
 
 ここからは GUI で操作を行います。
 ブラウザ上の別のタブを開き（または同タブにURLを入力して）[チーム](https://console.cloud.google.com/kubernetes/teams)へ移動します。
+表示されない場合は、ブラウザのリロードをお試しください。
 チームのページで、チーム名 app-a-team がリンクになっているのでクリックします。
 続いて、ページ上部の` + クラスタを追加` をクリックします。
 `すべて選択` にチェックを入れ `OK` をクリックします。
@@ -379,7 +380,7 @@ gcloud container clusters update prod-cluster \
 ### **Lab-01-09. チームスコープログの確認**
 
 再度 GUI で操作します。
-ブラウザ上の別のタブを開き（または同タブにURLを入力して）[チーム](https://console.cloud.google.com/kubernetes/teams)へ移動します。  
+ブラウザ上の別のタブを開き（または同タブにURLを入力して）[チーム](https://console.cloud.google.com/kubernetes/teams)へ移動します。  表示されない場合は、ブラウザのリロードをお試しください。
 チームのページより、チーム名 `app-a-team` がリンクになっているためクリックします。  
 `ログ`タブを選択し、先ほどデプロイしたアプリケーションからログが出力されていることを確認します。  
 **有効から 2,30 分程度かかる場合があるため、先に後続の手順を進め、後ほど確認してみてください**
@@ -398,6 +399,7 @@ gcloud container clusters update prod-cluster \
 
 また、時間に余裕がある場合、以下も確認してみましょう。
 先ほど有効化した脆弱性の結果を含むセキュリティに関するダッシュボードを確認することが可能です。
+表示されない場合は、ブラウザのリロードをお試しください。
 [セキュリティ](https://console.cloud.google.com/kubernetes/security/dashboard)
 **最大でAdvanced Vulnerability Insights の有効化から 15 分程度かかる場合があるため見れない場合は先に後続の手順を進め、後ほど確認してみてください**
 
@@ -487,7 +489,7 @@ gcloud workstations create ws-spring-dev \
 Platform Engineering の要素の一つとして、デプロイの自動化があります。
 プラットフォームの管理者として開発者が簡単にデプロイできるように Cloud Build/Cloud Deploy を使ってパイプラインを構築しておきます。
 今回はハンズオンのために準備したファイルを活用してパイプラインを準備します。
-各ファイルの中身を確認しておきます。
+各ファイルの中身を確認しておきます。Cloud Build のファイルについては、実際は開発者が Workstation で使うため、ここでは確認のみです。同じファイルが開発者側のレポジトリにも保存されています。
 
 ```bash
 cat lab-02/cloudbuild.yaml
