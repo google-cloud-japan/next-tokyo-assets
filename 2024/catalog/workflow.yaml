@@ -12,6 +12,7 @@ main:
             result: object
         - parallel_job:
             parallel:
+              concurrency_limit: 1
               for:
                 in: ${object.items}
                 index: i
@@ -26,5 +27,9 @@ main:
                         body:
                           product: ${item}
                       result: result
+                  - sleep:
+                      call: sys.sleep
+                      args:
+                          seconds: 5
         - finish:
             return: 'end'
