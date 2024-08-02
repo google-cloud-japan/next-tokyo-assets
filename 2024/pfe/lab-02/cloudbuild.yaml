@@ -18,6 +18,3 @@ steps:
     - '-c'
     - |
       gcloud deploy releases create release-$(date +%Y%m%d%H%M%S) --delivery-pipeline=next2024 --region=asia-northeast1 --source=./ --project=$PROJECT_ID
-
-images:
-- 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/app-repo/spring-gs:v2'
