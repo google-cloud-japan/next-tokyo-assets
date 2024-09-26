@@ -155,6 +155,12 @@ firebase apps:create -P $GOOGLE_CLOUD_PROJECT WEB ai-organizer
 (cd tf/ && terraform apply -target=google_identity_platform_config.default -var="project_id=$GOOGLE_CLOUD_PROJECT" -auto-approve)
 ```
 
+**GUI**: 以下のコマンドを実行し出力された URL にアクセスすると Firebase コンソールからの設定画面が確認可能です。
+
+```bash
+echo https://console.firebase.google.com/project/${GOOGLE_CLOUD_PROJECT}/authentication/providers?hl=ja
+```
+
 ## **Firestore データベース、セキュリティルールの設定**
 
 AI organizer で利用する各種メタデータの保存先として　 Firestore を利用します。
@@ -181,6 +187,12 @@ Cloud Firestore では**セキュリティルール**という機能を使い、
 
 今回は Terraform スクリプトの中で最低限のセキュリティルールを適用しています。
 
+**GUI**: 以下のコマンドを実行し出力された URL にアクセスすると Firebase コンソールからルール画面が確認可能です。
+
+```bash
+echo https://console.firebase.google.com/project/${GOOGLE_CLOUD_PROJECT}/firestore/databases/-default-/rules?hl=ja
+```
+
 ## **Cloud Storage for Firebase、セキュリティルールの設定**
 
 AI organizer では生成 AI に回答させる際のソースデータとしてファイルをアップロードができます。
@@ -200,6 +212,12 @@ Firestore と同様に Cloud Storage for Firebase では**クライアントか�
 Cloud Storage for Firebase でも**セキュリティルール**を利用してセキュリティを確保します。また Terraform で設定済みです。
 
 今回は Firebase Authentication でログインしたユーザーが、**Cloud Storage 上の自分専用のフォルダ配下にのみ書き込み、読み込みができる**ようにしています。
+
+**GUI**: 以下のコマンドを実行し出力された URL にアクセスすると Firebase コンソールからルール画面が確認可能です。
+
+```bash
+echo https://console.firebase.google.com/project/${GOOGLE_CLOUD_PROJECT}/storage/${GOOGLE_CLOUD_PROJECT}.appspot.com/rules?hl=ja
+```
 
 ## **AI organizer を Cloud Run にデプロイ**
 
@@ -274,7 +292,7 @@ gcloud iam service-accounts create genai-backend-sa
 
 ### **2. サービスアカウントへの権限追加**
 
-生成 AI 処理アプリケーションは Cloud SQL、Vertex AI などのサービスへのアクセス権限が必要です。
+生成 AI 処理アプリケーションは Cloud Storage、Vertex AI, Firestore などのサービスへのアクセス権限が必要です。
 
 ```bash
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \

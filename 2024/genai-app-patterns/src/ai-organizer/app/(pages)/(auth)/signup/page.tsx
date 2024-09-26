@@ -48,7 +48,7 @@ const SignupPage = () => {
               type="email"
               className="mb-4 w-full rounded-md border border-[#E1E1E1] p-2 outline-none"
               required
-              minLength={3}
+              minLength={6}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
@@ -60,7 +60,7 @@ const SignupPage = () => {
               type="password"
               className="mb-8 w-full rounded-md border border-[#E1E1E1] p-2 outline-none"
               required
-              minLength={3}
+              minLength={6}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
