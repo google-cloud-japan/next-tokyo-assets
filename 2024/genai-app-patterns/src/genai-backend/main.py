@@ -58,7 +58,7 @@ try:
 except KeyError:
     VERTEX_AI_LOCATION = "us-central1"
 
-bucket_name = f"{PROJECT_ID}.appspot.com"
+bucket_name = f"{PROJECT_ID}.firebasestorage.app"
 
 vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
 db = firestore.Client()
@@ -121,7 +121,7 @@ def add_source():
     name = doc.get("name")
     storagePath = doc.get("storagePath")
 
-    gcs_path = f"gs://{PROJECT_ID}.appspot.com{storagePath}"
+    gcs_path = f"gs://{PROJECT_ID}.firebasestorage.app{storagePath}"
 
     app.logger.info(f"{event_id}: start importing a source file: {name}")
     response = import_files(corpus_name, gcs_path)
@@ -284,7 +284,7 @@ def summarize():
 
     file_type = doc.get("type")
     storagePath = doc.get("storagePath")
-    gcs_path = f"gs://{PROJECT_ID}.appspot.com{storagePath}"
+    gcs_path = f"gs://{PROJECT_ID}.firebasestorage.app{storagePath}"
 
     model = GenerativeModel(model_name=GENERATIVE_MODEL_NAME)
 
@@ -329,7 +329,7 @@ def generate_common_questions():
 
     file_type = doc.get("type")
     storagePath = doc.get("storagePath")
-    gcs_path = f"gs://{PROJECT_ID}.appspot.com{storagePath}"
+    gcs_path = f"gs://{PROJECT_ID}.firebasestorage.app{storagePath}"
 
     model = GenerativeModel(model_name=GENERATIVE_MODEL_NAME)
 
@@ -374,3 +374,4 @@ def generate_common_questions():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+

@@ -101,26 +101,6 @@ resource "google_firestore_index" "items2" {
   ]
 }
 
-resource "time_sleep" "wait_30_seconds_for_firebase" {
-  depends_on = [
-    google_firestore_database.default
-  ]
-  create_duration = "30s"
-}
-
-resource "google_app_engine_application" "default" {
-  location_id = var.region
-
-  depends_on = [
-    time_sleep.wait_30_seconds_for_firebase
-  ]
-}
-
-resource "google_firebase_storage_bucket" "default" {
-  provider  = google-beta
-  bucket_id = google_app_engine_application.default.default_bucket
-}
-
 resource "google_firebaserules_ruleset" "storage" {
   provider = google-beta
   source {
@@ -131,13 +111,13 @@ resource "google_firebaserules_ruleset" "storage" {
   }
 
   depends_on = [
-    google_firebase_storage_bucket.default
+    null_resource.create_firebase_storage_default_bucket
   ]
 }
 
 resource "google_firebaserules_release" "storage" {
   provider     = google-beta
-  name         = "firebase.storage/${google_app_engine_application.default.default_bucket}"
+  name         = "firebase.storage/${var.project_id}.firebasestorage.app"
   ruleset_name = "projects/${var.project_id}/rulesets/${google_firebaserules_ruleset.storage.name}"
 
   depends_on = [
@@ -145,11 +125,9 @@ resource "google_firebaserules_release" "storage" {
   ]
 }
 
-resource "null_resource" "update_dot_env_for_knowledge_drive" {
+resource "null_resource" "create_firebase_storage_default_bucket" {
   provisioner "local-exec" {
-    command = "./firebase_config.sh"
+    command = "./create_firebase_storage_default_bucket.sh"
   }
-  depends_on = [
-    local_file.firebase_config
-  ]
 }
+

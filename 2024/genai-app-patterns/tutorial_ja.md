@@ -202,7 +202,7 @@ AI organizer では生成 AI に回答させる際のソースデータとして
 Firestore と同様に Cloud Storage for Firebase では**クライアントから直接ファイルを Cloud Storage にアップロード**できます。
 
 ```bash
-(cd tf/ && terraform apply -target=google_app_engine_application.default -target=google_firebase_storage_bucket.default -target=google_firebaserules_ruleset.storage -target=google_firebaserules_release.storage -var="project_id=$GOOGLE_CLOUD_PROJECT" -auto-approve)
+(cd tf/ && terraform apply -target=null_resource.create_firebase_storage_default_bucket -target=google_firebaserules_ruleset.storage -target=google_firebaserules_release.storage -var="project_id=$GOOGLE_CLOUD_PROJECT" -auto-approve)
 ```
 
 ### **セキュリティについて**
@@ -216,7 +216,7 @@ Cloud Storage for Firebase でも**セキュリティルール**を利用して�
 **GUI**: 以下のコマンドを実行し出力された URL にアクセスすると Firebase コンソールからルール画面が確認可能です。
 
 ```bash
-echo https://console.firebase.google.com/project/${GOOGLE_CLOUD_PROJECT}/storage/${GOOGLE_CLOUD_PROJECT}.appspot.com/rules?hl=ja
+echo https://console.firebase.google.com/project/${GOOGLE_CLOUD_PROJECT}/storage/${GOOGLE_CLOUD_PROJECT}.firebasestorage.app/rules?hl=ja
 ```
 
 ## **AI organizer を Cloud Run にデプロイ**
