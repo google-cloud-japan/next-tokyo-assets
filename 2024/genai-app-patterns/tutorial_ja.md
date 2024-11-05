@@ -21,7 +21,7 @@
 **Vertex AI**
 
 - 生成 AI の API (Gemini 1.5 Flash)
-- RAG 機能を司る API 群 (LlamaIndex on Vertex AI for RAG)
+- RAG 機能を司る API 群 (RAG Engine)
 
 今回は以下の 2 つのアプリケーションを構築していくことで、Google Cloud を使った生成 AI のアプリケーション組み込みを学びます。
 
@@ -442,7 +442,7 @@ gcloud pubsub topics add-iam-policy-binding genai-backend-dead-letter \
 
 ## **ソースデータに基づいた回答生成**
 
-ソースデータに基づいた回答生成は RAG というテクニックを [LlamaIndex on Vertex AI for RAG](https://cloud.google.com/vertex-ai/generative-ai/docs/llamaindex-on-vertexai) を利用して実現しています。
+ソースデータに基づいた回答生成は RAG というテクニックを [RAG Engine](https://cloud.google.com/vertex-ai/generative-ai/docs/rag-overview) を利用して実現しています。
 
 ここでは具体的なソースコードを見ながら、詳細な処理を確認します。
 
