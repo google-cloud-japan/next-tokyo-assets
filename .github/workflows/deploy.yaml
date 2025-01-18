@@ -25,6 +25,7 @@ jobs:
         with:
           service_account_key: ${{ secrets.GCP_SA_KEY }} # ステップ2で登録した秘密キーJSON
           project_id: ${{ secrets.GCP_PROJECT_ID }}
+          export_default_credentials: true   
 
       # (3) Docker pushの認証 (必要な場合)
       - name: Configure Docker auth
