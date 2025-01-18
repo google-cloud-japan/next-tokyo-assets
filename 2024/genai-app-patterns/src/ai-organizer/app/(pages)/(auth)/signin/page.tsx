@@ -13,6 +13,7 @@ import { getUserByUid } from '@/lib/firebase/firestore';
 import { userAtom } from '@/lib/state';
 
 const SigninPage = () => {
+  useEffect(() => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const setUser = useSetAtom(userAtom);
@@ -33,7 +34,7 @@ const SigninPage = () => {
       console.log(e);
     }
   };
-
+  }, []);
   return (
     <>
       <div className="flex h-screen items-center justify-center">

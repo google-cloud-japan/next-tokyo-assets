@@ -13,6 +13,8 @@ import { addUser, getUserByUid } from '@/lib/firebase/firestore';
 import { userAtom } from '@/lib/state';
 
 const SignupPage = () => {
+  useEffect(() => {
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const setUser = useSetAtom(userAtom);
@@ -33,6 +35,7 @@ const SignupPage = () => {
       console.log(e);
     }
   };
+  }, []);
 
   return (
     <>
