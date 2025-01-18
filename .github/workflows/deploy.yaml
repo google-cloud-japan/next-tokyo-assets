@@ -15,6 +15,10 @@ jobs:
       - name: Check out the code
         uses: actions/checkout@v3
 
+      - name: Set GCP region
+        run: |
+          gcloud config set run/region asia-northeast1
+
       # 2. gcloud CLI をセットアップ
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v1
