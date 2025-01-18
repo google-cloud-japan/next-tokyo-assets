@@ -23,9 +23,9 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          # 必要に応じて、Cloud Build用に追加コンポーネントを入れる例
-          install_components: cloud-build-local
-
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          install_components: beta 
       # (3) gcloud コマンドでデプロイ
       - name: Deploy to Cloud Run (beta)
         env:
