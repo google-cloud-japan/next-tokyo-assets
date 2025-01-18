@@ -54,9 +54,9 @@ jobs:
       # (6) Cloud Run へのデプロイ
       - name: Deploy to Cloud Run
         run: |
-          # 例: Next.js プロジェクトが src/ai-organizer というディレクトリにある場合
           gcloud run deploy ai-organizer \
             --source ./src/ai-organizer \
+            --build-arg NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
             --service-account ai-organizer-sa@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
             --allow-unauthenticated \
             --region asia-northeast1 \

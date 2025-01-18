@@ -17,6 +17,14 @@ RUN \
 
 # Rebuild the source code only when needed
 FROM base AS builder
+
+# (1) Build Argument で受け取る
+ARG NEXT_PUBLIC_FIREBASE_API_KEY
+
+# (2) ENV として設定し、Next.js ビルド時に読み込めるようにする
+ENV NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY
+
+
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
