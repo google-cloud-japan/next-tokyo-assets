@@ -31,7 +31,7 @@ const SelectAllSources = () => {
 
   return (
     <div className="flex h-10 items-center justify-between">
-      <span className="flex items-center text-sm">すべてのソースを選択</span>
+      <span className="flex items-center text-sm">超超すべてのソースを選択</span>
       <div className="flex w-8 items-center justify-center">
         <input
           type="checkbox"
