@@ -2,35 +2,37 @@ name: Deploy to Cloud Run
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Check out code
+      - name: Check out
         uses: actions/checkout@v3
 
-      # (認証設定) ここで service_account_key をセット
-      - name: Set up gcloud
+      # (1) Service Accountキーで認証する
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # (2) gcloud CLI をセットアップ
+      - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
+          # 必要に応じて、Cloud Build用に追加コンポーネントを入れる例
+          install_components: cloud-build-local
 
+      # (3) gcloud コマンドでデプロイ
       - name: Deploy to Cloud Run
         run: |
-          # 認証確認（ここでアクティブアカウントが表示されればOK）
           echo "Check gcloud auth list"
           gcloud auth list
 
-          # リージョン固定
           gcloud config set run/region asia-northeast1
-
-          # デプロイ
           gcloud run deploy my-service \
             --source . \
             --platform managed \
