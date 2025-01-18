@@ -42,8 +42,10 @@ jobs:
             -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
             -backend-config="prefix=terraform/state" \
             -reconfigure
-          terraform plan -out planfile
-          terraform apply -auto-approve planfile
+          terraform apply \
+            -target=google_identity_platform_config.default \
+            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
+            -auto-approve
 
       # (6) Cloud Run へのデプロイ
       - name: Deploy to Cloud Run
