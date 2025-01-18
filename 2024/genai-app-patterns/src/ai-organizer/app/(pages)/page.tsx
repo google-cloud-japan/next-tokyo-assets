@@ -1,3 +1,5 @@
+'use client';
+
 import Header from '@/components/header';
 import NotebooksLayout from '@/components/notebooks-layout';
 
