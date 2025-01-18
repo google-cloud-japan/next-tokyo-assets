@@ -1,76 +1,36 @@
+# .github/workflows/deploy.yml
 name: Deploy to Cloud Run
 
 on:
   push:
     branches:
-      - main
-  pull_request:
+      - main  # mainブランチへのpushをトリガーにする例
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: 2024/genai-app-patterns  # Terraformやソースを置いているフォルダ
-
     steps:
-      # (1) リポジトリをチェックアウト
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      # 1. リポジトリのコードをチェックアウト
+      - name: Check out the code
+        uses: actions/checkout@v3
 
-      # (2) gcloud CLI のセットアップ（Google提供の公式Action）
-      - name: Auth with GCP
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}  # GCPサービスアカウントキー (JSON)
-          export_environment_variables: true
-
-      - name: Setup gcloud
+      # 2. gcloud CLI をセットアップ
+      - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
 
-      # (3) Docker pushの認証 (必要な場合)
-      - name: Configure Docker auth
-        run: gcloud auth configure-docker
-
-      # (4) Terraformのセットアップ
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-
-      # (5) Terraform init/plan/apply
-      - name: Terraform Init & Apply
-        run: |
-          cd tf
-          terraform init \
-            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
-            -backend-config="prefix=terraform/state" \
-            -reconfigure
-
-          terraform apply \
-            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
-            -auto-approve
-
-      # (6) Docker Build & Push
-      - name: Build Docker image
-        run: |
-          # Docker build で Firebase APIキーを注入
-          docker build \
-            --build-arg NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
-            -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/ai-organizer:latest \
-            ./src/ai-organizer
-
-      - name: Push Docker image
-        run: |
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/ai-organizer:latest
-
-      # (7) Cloud Run へのデプロイ
+      # 3. Cloud Runにデプロイ
       - name: Deploy to Cloud Run
         run: |
-          gcloud run deploy ai-organizer \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/ai-organizer:latest \
-            --service-account ai-organizer-sa@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
-            --allow-unauthenticated \
-            --region asia-northeast1 \
-            --quiet
+          # 必要に応じてビルドコマンドやテストをここで行う
+          # 例: npm install && npm test / pip install && pytest など
+          
+          gcloud config set run/region ${{ secrets.GCP_REGION }}
+          gcloud run deploy my-service \
+            --source . \
+            --platform managed \
+            --allow-unauthenticated
