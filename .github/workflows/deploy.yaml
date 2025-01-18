@@ -35,7 +35,7 @@ jobs:
           # FLASK_PROJECT_ID は ${{ secrets.GCP_PROJECT_ID }} を割り当て
 
           gcloud run deploy genai-backend \
-            --source ./src/genai-backend \
+            --source ./2024/genai-app-patterns/src/genai-backend \
             --region asia-northeast1 \
             --service-account genai-backend-sa@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
             --set-env-vars=FLASK_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }} \
