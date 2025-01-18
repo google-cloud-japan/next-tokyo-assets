@@ -20,18 +20,6 @@ resource "local_file" "firebase_config" {
   })
 }
 
-resource "google_identity_platform_config" "default" {
-  sign_in {
-    allow_duplicate_emails = false
-    anonymous {
-        enabled = false
-    }
-    email {
-        enabled = true
-        password_required = true
-    }
-  }
-}
 
 resource "google_firestore_database" "default" {
   provider    = google-beta
