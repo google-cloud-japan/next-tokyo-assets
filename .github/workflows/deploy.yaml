@@ -34,7 +34,7 @@ jobs:
 
           gcloud config set run/region asia-northeast1
           gcloud run deploy ai-organizer \
-            --source . \
+            --source ./src/ai-organizer \
             --service-account ai-organizer-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
             --platform managed \
             --allow-unauthenticated
