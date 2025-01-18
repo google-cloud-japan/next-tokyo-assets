@@ -20,13 +20,16 @@ jobs:
         uses: actions/checkout@v2
 
       # (2) gcloud CLIのセットアップ (Google提供の公式Action)
-      - name: Set up gcloud CLI
+      - name: Auth with GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          export_environment_variables: true
+
+      - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v1
         with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }} # ステップ2で登録した秘密キーJSON
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          export_default_credentials: true   
-
+    project_id: ${{ secrets.GCP_PROJECT_ID }}
       # (3) Docker pushの認証 (必要な場合)
       - name: Configure Docker auth
         run: gcloud auth configure-docker
