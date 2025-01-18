@@ -39,6 +39,7 @@ jobs:
             --source ./2024/genai-app-patterns/src/ai-organizer \
             --region asia-northeast1 \
             --platform managed \
+            --execution-environment=gen2 \               
             --allow-unauthenticated \
             --build-env-vars="NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY,\
               NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,\
