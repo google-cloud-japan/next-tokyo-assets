@@ -8,11 +8,13 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check out the code
+      # (1) コードチェックアウト
+      - name: Check out code
         uses: actions/checkout@v3
 
-      # 1. gcloud CLI のセットアップ
+      # (2) gcloud CLI をセットアップ (ここで認証も有効化)
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v1
         with:
@@ -20,11 +22,16 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
-      # 2. Cloud Run デプロイ
+      # (3) Cloud Run にデプロイ
       - name: Deploy to Cloud Run
         run: |
+          # まず念のため認証アカウントが有効か確認する（デバッグ用）
+          echo "Check gcloud auth list"
+          gcloud auth list
+
           # リージョンを固定で設定
           gcloud config set run/region asia-northeast1
+
           # ソースから Cloud Run へデプロイ
           gcloud run deploy my-service \
             --source . \
