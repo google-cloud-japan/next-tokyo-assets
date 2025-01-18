@@ -1,25 +1,18 @@
-# .github/workflows/deploy.yml
 name: Deploy to Cloud Run
 
 on:
   push:
     branches:
-      - main  # mainブランチへのpushをトリガーにする例
+      - main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
-      # 1. リポジトリのコードをチェックアウト
       - name: Check out the code
         uses: actions/checkout@v3
 
-      - name: Set GCP region
-        run: |
-          gcloud config set run/region asia-northeast1
-
-      # 2. gcloud CLI をセットアップ
+      # 1. gcloud CLI のセットアップ
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v1
         with:
@@ -27,13 +20,12 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
-      # 3. Cloud Runにデプロイ
+      # 2. Cloud Run デプロイ
       - name: Deploy to Cloud Run
         run: |
-          # 必要に応じてビルドコマンドやテストをここで行う
-          # 例: npm install && npm test / pip install && pytest など
-          
-          gcloud config set run/region ${{ secrets.GCP_REGION }}
+          # リージョンを固定で設定
+          gcloud config set run/region asia-northeast1
+          # ソースから Cloud Run へデプロイ
           gcloud run deploy my-service \
             --source . \
             --platform managed \
