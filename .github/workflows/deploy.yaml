@@ -27,7 +27,7 @@ jobs:
           install_components: cloud-build-local
 
       # (3) gcloud コマンドでデプロイ
-      - name: Deploy to Cloud Run
+      - name: Deploy to Cloud Run (beta)
         env:
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
@@ -36,13 +36,9 @@ jobs:
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
         run: |
-          echo "Check gcloud auth list"
-          gcloud auth list
-
-          gcloud config set run/region asia-northeast1
-          gcloud run deploy ai-organizer \
+          gcloud beta run deploy ai-organizer \
             --source ./2024/genai-app-patterns/src/ai-organizer \
-            --service-account ai-organizer-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
+            --region asia-northeast1 \
             --platform managed \
             --allow-unauthenticated \
             --build-env-vars="NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY,\
