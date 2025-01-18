@@ -1,0 +1,54 @@
+name: Deploy to Cloud Run
+
+# main ブランチに push されたとき、または Pull Request が作られたとき等をトリガーに
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # (1) リポジトリをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # (2) gcloud CLIのセットアップ (Google提供の公式Action)
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }} # ステップ2で登録した秘密キーJSON
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      # (3) Docker pushの認証 (必要な場合)
+      - name: Configure Docker auth
+        run: gcloud auth configure-docker
+
+      # (4) Terraformのセットアップ
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      # (5) Terraform init/plan/apply
+      - name: Terraform Init & Apply
+        run: |
+          cd tf
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="prefix=terraform/state" \
+            -reconfigure
+          terraform plan -out planfile
+          terraform apply -auto-approve planfile
+
+      # (6) Cloud Run へのデプロイ
+      - name: Deploy to Cloud Run
+        run: |
+          # 例: Next.js プロジェクトが src/ai-organizer というディレクトリにある場合
+          gcloud run deploy ai-organizer \
+            --source ./src/ai-organizer \
+            --service-account ai-organizer-sa@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
+            --allow-unauthenticated \
+            --region asia-northeast1 \
+            --quiet
