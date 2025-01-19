@@ -1,0 +1,29 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-east1-docker.pkg.dev/$PROJECT_ID/chatbot-api-repo/chatbot-api:$COMMIT_SHA', '.']
+
+  # Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/chatbot-api-repo/chatbot-api:$COMMIT_SHA']
+
+  # Deploy the new image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'chatbot-api' # Your Cloud Run service name
+      - '--image'
+      - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/chatbot-api-repo/chatbot-api:$COMMIT_SHA'
+      - '--region'
+      - 'asia-northeast1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated' # Adjust as needed
+      # Add other configuration options as needed, such as environment variables:
+      - '--set-env-vars'
+      - 'VERTEX_AI_LOCATION=asia-northeast1,PROJECT_ID=$PROJECT_ID,GENERATIVE_MODEL_NAME=gemini-pro'
+
+images:
+  - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/chatbot-api-repo/chatbot-api:$COMMIT_SHA'
