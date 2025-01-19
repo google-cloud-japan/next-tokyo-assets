@@ -17,6 +17,7 @@ class TaskTrail extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
+      darkTheme: ThemeData.dark(),
       home: const RootLayout(),
     );
   }
