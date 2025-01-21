@@ -1,5 +1,5 @@
-# Uncomment this line to define a global platform for your project
-# platform :ios, '12.0'
+# 12.0 だと動かないので 13.0 に変更
+platform :ios, '13.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -30,6 +30,14 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
+
+  # firebase 系のライブラリを追加
+  pod 'Firebase/Analytics', :modular_headers => true
+  pod 'Firebase/Auth', :modular_headers => true
+  pod 'Firebase/Core', :modular_headers => true
+  pod 'Firebase/Firestore', :modular_headers => true
+  pod 'Firebase/Storage', :modular_headers => true
+  pod 'FirebaseCore', :modular_headers => true
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
