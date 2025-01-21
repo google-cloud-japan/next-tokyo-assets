@@ -7,8 +7,10 @@ plugins {
 
 android {
     namespace = "com.example.task_trail"
-    compileSdk = flutter.compileSdkVersion
+    // compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+
+    compileSdkVersion 34
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -24,8 +26,10 @@ android {
         applicationId = "com.example.task_trail"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdkVersion 30
+        // minSdk = flutter.minSdkVersion
+        targetSdkVersion 34
+        // targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
