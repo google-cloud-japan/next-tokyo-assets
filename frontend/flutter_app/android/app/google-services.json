@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "514173068988",
+    "project_id": "ai-hackathon-test1",
+    "storage_bucket": "ai-hackathon-test1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:514173068988:android:37747c14d7e7fd4c00d2b9",
+        "android_client_info": {
+          "package_name": "com.example.hackathon_test1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLuwjOhwCnDRvYqXBl2m97wFPm5ee5YIM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:514173068988:android:605de81ae799e87500d2b9",
+        "android_client_info": {
+          "package_name": "com.example.task_trail"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLuwjOhwCnDRvYqXBl2m97wFPm5ee5YIM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
