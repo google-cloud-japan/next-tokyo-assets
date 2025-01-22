@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-
-// FlutterFire CLI で生成されたファイル（例：lib/firebase_options.dart）
+import 'package:hackathon_test1/chat.dart';
+import 'package:hackathon_test1/utils/safe_use_context_extension.dart';
 import 'firebase_options.dart';
-
-// Firebase Authentication
 import 'package:firebase_auth/firebase_auth.dart';
-
-// Firestore
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,17 +23,18 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Firebase Demo',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const AuthGate(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const AuthGate(),
+        '/chat': (context) => const ChatPage(),
+      },
     );
   }
 }
 
-final notebookId = 'tekitotekito'; // 画面遷移時に受け取るなど
-
-
 /// FirebaseAuth のログイン状態によって画面を切り替えるウィジェット
 class AuthGate extends StatelessWidget {
-  const AuthGate({Key? key}) : super(key: key);
+  const AuthGate({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +53,12 @@ class AuthGate extends StatelessWidget {
           return const SignInScreen();
         }
         // ログイン済みの場合 → メイン画面へ
-        return const HomeScreen();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('ログインしました : ${snapshot.data!.email}')),
+          );
+        });
+        return const ChatPage();
       },
     );
   }
@@ -65,7 +66,7 @@ class AuthGate extends StatelessWidget {
 
 /// ユーザーがログインしていない時に表示するサインイン画面
 class SignInScreen extends StatefulWidget {
-  const SignInScreen({Key? key}) : super(key: key);
+  const SignInScreen({super.key});
 
   @override
   State<SignInScreen> createState() => _SignInScreenState();
@@ -79,18 +80,38 @@ class _SignInScreenState extends State<SignInScreen> {
   Future<void> _signUp() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
+
+    if (!mounted) {
+      throw Exception('Widget is no longer mounted.');
+    }
+
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ユーザー登録に成功しました')),
-      );
+      User? user = userCredential.user;
+      safeUseContext((context) {
+        if (user != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('ユーザー登録に成功しました')),
+          );
+          Navigator.pushReplacementNamed(context, '/chat');
+        }
+      });
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('登録エラー: ${e.message}')),
-      );
+      safeUseContext((context) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('登録エラー: ${e.message}')),
+        );
+      });
+    } catch (e) {
+      safeUseContext((context) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('エラー: $e')),
+        );
+      });
     }
   }
 
@@ -103,13 +124,23 @@ class _SignInScreenState extends State<SignInScreen> {
         email: email,
         password: password,
       );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ログインに成功しました')),
-      );
+      safeUseContext((context) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ログインに成功しました')),
+        );
+      });
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('ログインエラー: ${e.message}')),
-      );
+      safeUseContext((context) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('ログインエラー: ${e.message}')),
+        );
+      });
+    } catch (e) {
+      safeUseContext((context) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('エラー: $e')),
+        );
+      });
     }
   }
 
@@ -152,140 +183,6 @@ class _SignInScreenState extends State<SignInScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// ユーザーがログイン済みのときに表示するホーム画面
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final _firestore = FirebaseFirestore.instance;
-  final _textController = TextEditingController();
-
-  /// Firestoreにデータを追加する
-  Future<void> _addMessage() async {
-    final text = _textController.text.trim();
-    if (text.isEmpty) return;
-
-    // 現在ログインしているユーザー
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      // ログインしていない場合のエラーハンドリング
-      return;
-    }
-
-    try {
-      await _firestore
-          .collection('users')
-          .doc(currentUser.uid)
-          .collection('notebooks')
-          .doc(notebookId)
-          .collection('chat')
-          .add({
-        'content': text,
-        'createdAt': FieldValue.serverTimestamp(),
-        'role': "user",
-        'loading': false,
-        'ragFileIds': null,
-        'status': "success"
-      });
-      _textController.clear();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Firestore書き込みエラー: $e')),
-      );
-    }
-  }
-
-  /// ログアウト処理
-  Future<void> _signOut() async {
-    await FirebaseAuth.instance.signOut();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // ログインユーザーを取得
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      return const Scaffold(
-        body: Center(child: Text('ログインしていません')),
-      );
-    }
-
-    // ユーザーごとの messages サブコレクションをリアルタイム監視
-    final messageStream = FirebaseFirestore.instance
-        .collection('users')
-        .doc(currentUser.uid)
-        .collection('notebooks')
-        .doc(notebookId)
-        .collection('chat')
-        .orderBy('createdAt', descending: true)
-        .snapshots();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _signOut,
-          )
-        ],
-      ),
-      body: Column(
-        children: [
-          // メッセージ一覧
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: messageStream,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final docs = snapshot.data!.docs;
-                return ListView.builder(
-                  reverse: true,
-                  itemCount: docs.length,
-                  itemBuilder: (context, index) {
-                    final data = docs[index].data() as Map<String, dynamic>;
-                    final content = data['content'] ?? 'No Message';
-                    final role = data['role'] ?? 'Unknown';
-                    final createdAt = data['createdAt']?.toDate().toString() ?? 'No Time';
-
-                    return ListTile(
-                      title: Text(content),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          // 入力欄
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _textController,
-                    decoration: const InputDecoration(hintText: 'Enter message'),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _addMessage,
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
