@@ -1,13 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hackathon_test1/models/objective_model.dart';
 import 'package:hackathon_test1/views/common/snackbar_helper.dart';
 
-class ObjectiveViewModel {
+class GoalViewModel {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> addObjective(String objective, BuildContext context) async {
+  Future<void> addGoal(String goal, BuildContext context) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       SnackbarHelper.show(context, 'ログインしていません');
@@ -15,23 +14,21 @@ class ObjectiveViewModel {
     }
 
     try {
-      final objectiveId = _firestore
+      final goalId = _firestore
           .collection('users')
           .doc(currentUser.uid)
-          .collection('objectives')
+          .collection('goals')
           .doc()
           .id;
-      final newObjective = Objective(
-        id: objectiveId,
-        objective: objective,
-        createdAt: DateTime.now(),
-      );
       await _firestore
           .collection('users')
           .doc(currentUser.uid)
-          .collection('objectives')
-          .doc(objectiveId)
-          .set(newObjective.toMap());
+          .collection('goals')
+          .doc(goalId)
+          .set({
+        'goal': goal,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
       // ignore: use_build_context_synchronously
       SnackbarHelper.show(context, '目標が追加されました');
     } catch (e) {

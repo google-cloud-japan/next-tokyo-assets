@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hackathon_test1/viewmodels/objective_viewmodel.dart';
-import 'package:hackathon_test1/views/common/add_objective_button.dart';
+import 'package:hackathon_test1/viewmodels/goal_viewmodel.dart';
+import 'package:hackathon_test1/views/common/add_goal_button.dart';
 import 'package:hackathon_test1/views/common/snackbar_helper.dart';
 
 /// ユーザーがログイン済みのときに表示するホーム画面
@@ -18,7 +18,7 @@ class _ChatPageState extends State<ChatPage> {
   final _textController = TextEditingController();
   final notebookId = 'tekitotekito'; // 画面遷移時に受け取るなど
   String? selectedObjectiveId; // 選択された目標のIDを保持
-  final ObjectiveViewModel _objectiveViewModel = ObjectiveViewModel();
+  final GoalViewModel _objectiveViewModel = GoalViewModel();
 
   /// Firestoreにデータを追加する
   Future<void> _addMessage() async {
@@ -53,41 +53,6 @@ class _ChatPageState extends State<ChatPage> {
     } catch (e) {
       // ignore: use_build_context_synchronously
       SnackbarHelper.show(context, 'Firestore書き込みエラー: $e');
-    }
-  }
-
-  /// 新規目標をFirestoreに追加する
-  Future<void> _addGoal(String goal) async {
-    // 現在ログインしているユーザー
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      // ログインしていない場合のエラーハンドリング
-      return;
-    }
-
-    try {
-      final goalId = _firestore
-          .collection('users')
-          .doc(currentUser.uid)
-          .collection('goals')
-          .doc()
-          .id;
-      await _firestore
-          .collection('users')
-          .doc(currentUser.uid)
-          .collection('goals')
-          .doc(goalId)
-          .set({
-        'goal': goal,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('目標が追加されました')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Firestore書き込みエラー: $e')),
-      );
     }
   }
 
@@ -153,8 +118,7 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child:
-                            AddObjectiveButton(viewModel: _objectiveViewModel),
+                        child: AddGoalButton(viewModel: _objectiveViewModel),
                       ),
                     ],
                   ),
@@ -236,7 +200,7 @@ class _ChatPageState extends State<ChatPage> {
                         children: [
                           const Text('目標を選択してください'),
                           // TODO : chatStream が 存在する場合はドロワーを開くボタンを追加する
-                          AddObjectiveButton(viewModel: _objectiveViewModel),
+                          AddGoalButton(viewModel: _objectiveViewModel),
                         ],
                       ),
                     ),

@@ -31,6 +31,15 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Xcode user-specific files
+ios/Runner.xcworkspace/xcuserdata/
+ios/Runner.xcworkspace/xcshareddata/
+ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/
+
+# Xcode build artifacts
+ios/build/
+
 # Symbolication related
 app.*.symbols
 

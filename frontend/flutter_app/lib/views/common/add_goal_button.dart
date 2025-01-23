@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:hackathon_test1/viewmodels/objective_viewmodel.dart';
+import 'package:hackathon_test1/viewmodels/goal_viewmodel.dart';
 
-class AddObjectiveButton extends StatelessWidget {
-  final ObjectiveViewModel viewModel;
+class AddGoalButton extends StatelessWidget {
+  final GoalViewModel viewModel;
 
-  const AddObjectiveButton({super.key, required this.viewModel});
+  const AddGoalButton({super.key, required this.viewModel});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class AddObjectiveButton extends StatelessWidget {
                   onPressed: () {
                     final objective = objectiveController.text.trim();
                     if (objective.isNotEmpty) {
-                      viewModel.addObjective(objective, context);
+                      viewModel.addGoal(objective, context);
                     }
                     Navigator.of(context).pop();
                   },
