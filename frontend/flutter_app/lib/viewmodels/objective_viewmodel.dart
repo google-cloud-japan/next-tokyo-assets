@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hackathon_test1/models/objective_model.dart';
+import 'package:hackathon_test1/views/common/snackbar_helper.dart';
 
 class ObjectiveViewModel {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -9,9 +10,7 @@ class ObjectiveViewModel {
   Future<void> addObjective(String objective, BuildContext context) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ログインしていません')),
-      );
+      SnackbarHelper.show(context, 'ログインしていません');
       return;
     }
 
@@ -33,13 +32,11 @@ class ObjectiveViewModel {
           .collection('objectives')
           .doc(objectiveId)
           .set(newObjective.toMap());
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('目標が追加されました')),
-      );
+      // ignore: use_build_context_synchronously
+      SnackbarHelper.show(context, '目標が追加されました');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Firestore書き込みエラー: $e')),
-      );
+      // ignore: use_build_context_synchronously
+      SnackbarHelper.show(context, 'Firestore書き込みエラー: $e');
     }
   }
 }

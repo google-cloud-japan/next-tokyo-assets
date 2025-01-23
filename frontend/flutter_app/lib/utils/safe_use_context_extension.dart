@@ -1,10 +1,8 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
-extension SafeContextExtension on State {
-  /// `mounted` が true の場合のみ実行する汎用メソッド
-  void safeUseContext(void Function(BuildContext context) action) {
-    if (mounted) {
-      action(context);
-    }
+void safeUseContext(
+    BuildContext context, void Function(BuildContext) callback) {
+  if (context.mounted) {
+    callback(context);
   }
 }

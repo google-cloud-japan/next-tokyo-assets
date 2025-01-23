@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hackathon_test1/viewmodels/objective_viewmodel.dart';
 import 'package:hackathon_test1/views/common/add_objective_button.dart';
+import 'package:hackathon_test1/views/common/snackbar_helper.dart';
 
 /// ユーザーがログイン済みのときに表示するホーム画面
 class ChatPage extends StatefulWidget {
@@ -27,7 +28,7 @@ class _ChatPageState extends State<ChatPage> {
     // 現在ログインしているユーザー
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
-      // ログインしていない場合のエラーハンドリング
+      SnackbarHelper.show(context, 'ログインしていません');
       return;
     }
 
@@ -47,10 +48,11 @@ class _ChatPageState extends State<ChatPage> {
         'status': "success"
       });
       _textController.clear();
+      // ignore: use_build_context_synchronously
+      SnackbarHelper.show(context, 'メッセージが送信されました');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Firestore書き込みエラー: $e')),
-      );
+      // ignore: use_build_context_synchronously
+      SnackbarHelper.show(context, 'Firestore書き込みエラー: $e');
     }
   }
 
@@ -222,6 +224,7 @@ class _ChatPageState extends State<ChatPage> {
 
                             return ListTile(
                               title: Text(content),
+                              subtitle: Text(createdAt),
                             );
                           },
                         );
