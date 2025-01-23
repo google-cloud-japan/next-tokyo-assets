@@ -13,6 +13,8 @@ from vertexai.generative_models import (
     GenerativeModel,
 )
 
+from firestore.store import save_chat_response
+
 # ロガーの設定
 logging.basicConfig(
     level=logging.INFO,
@@ -78,16 +80,23 @@ def generate_response(prompt: str, chat_history: List[Dict[str, str]] = None) ->
     ))
 
     logger.debug(f"Generated contents structure: {contents}")
-    
+
     try:
         logger.info("Calling Vertex AI GenerativeModel...")
         response = model.generate_content(contents=contents)
         logger.info("Successfully generated response")
-        return {
+
+        result = {
             "status": "success",
             "response": response.text,
             "prompt": prompt
         }
+
+        # Firestore に応答を保存
+        save_chat_response(result)
+
+        return result
+
     except Exception as err:
         logger.error(f"Error generating response: {err}", exc_info=True)
         return {
@@ -115,7 +124,7 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
     if result["status"] == "error":
         logger.error(f"Chat request failed: {result['error']}")
         raise HTTPException(status_code=500, detail=result["error"])
-    
+
     logger.info("Successfully processed chat request")
     return result
 
@@ -131,4 +140,4 @@ async def health_check() -> Dict[str, str]:
 logger.info(
     f"Application started with project ID: {os.environ['PROJECT_ID']} "
     f"in location: {os.environ['VERTEX_AI_LOCATION']}"
-) 
+)
