@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -11,12 +12,12 @@ Future<void> signUp(String email, String password) async {
     // ユーザー情報取得
     User? user = userCredential.user;
     if (user != null) {
-      print('User signed up: ${user.uid}');
+      debugPrint('User signed up: ${user.uid}');
     }
   } on FirebaseAuthException catch (e) {
-    print('Sign up failed: $e');
+    debugPrint('Sign up failed: $e');
   } catch (e) {
-    print(e.toString());
+    debugPrint(e.toString());
   }
 }
 
@@ -28,17 +29,16 @@ Future<void> signIn(String email, String password) async {
     );
     User? user = userCredential.user;
     if (user != null) {
-      print('User signed in: ${user.uid}');
+      debugPrint('User signed in: ${user.uid}');
     }
   } on FirebaseAuthException catch (e) {
-    print('Sign in failed: $e');
+    debugPrint('Sign in failed: $e');
   } catch (e) {
-    print(e.toString());
+    debugPrint(e.toString());
   }
 }
 
 Future<void> signOut() async {
   await _auth.signOut();
-  print('User signed out');
+  debugPrint('User signed out');
 }
-
