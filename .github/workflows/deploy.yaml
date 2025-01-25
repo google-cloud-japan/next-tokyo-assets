@@ -34,7 +34,7 @@ jobs:
         run: |
           gcloud builds submit \
             --region=asia-east1 \
-            --tag=asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/chatbot-api-repo/chatbot-api:pr-${{ github.run_number }}
+            --tag=asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/chatbot-api-repo/chatbot-api:pr-${{ github.run_number }} \
             ./backend/src/chatbot
 
           gcloud run deploy chatbot-api \
