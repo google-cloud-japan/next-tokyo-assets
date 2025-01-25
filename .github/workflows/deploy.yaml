@@ -2,7 +2,7 @@ name: Deploy to Cloud Run
 
 on:
   push:
-    branches: [main]
+    branches: [develop]
 
 jobs:
   build-and-deploy:
@@ -27,16 +27,17 @@ jobs:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       # 4. Cloud Run にデプロイ
-      - name: Deploy genai-backend
+      - name: Build container image
         run: |
-          # 今回はビルド時ではなく、実行時に環境変数をセットする
-          # (--set-env-vars は「実行時」の環境変数指定)
-          # SERVICE_ACCOUNT はチュートリアル通り
-          # FLASK_PROJECT_ID は ${{ secrets.GCP_PROJECT_ID }} を割り当て
+          gcloud builds submit \
+            --region=asia-northeast1 \
+            --tag=asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/chatbot-api-repo/chatbot-api:v1 \
+            .
 
-          gcloud run deploy genai-backend \
-            --source ./2024/genai-app-patterns/src/genai-backend \
-            --region asia-northeast1 \
-            --service-account genai-backend-sa@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
-            --set-env-vars=FLASK_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }} \
-            --no-allow-unauthenticated
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy chatbot-api \
+            --image=asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/chatbot-api-repo/chatbot-api:v1 \
+            --region=asia-northeast1 \
+            --allow-unauthenticated \
+            --set-env-vars=VERTEX_AI_LOCATION=asia-northeast1,PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},GENERATIVE_MODEL_NAME=gemini-pro
