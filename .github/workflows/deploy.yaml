@@ -32,7 +32,7 @@ jobs:
           gcloud builds submit \
             --region=asia-northeast1 \
             --tag=asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/chatbot-api-repo/chatbot-api:v1 \
-            .
+            ./backend/src/chatbot
 
       - name: Deploy to Cloud Run
         run: |
