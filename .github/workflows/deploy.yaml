@@ -30,7 +30,7 @@ jobs:
       - name: Build container image
         run: |
           gcloud builds submit \
-            --region=asia-northeast1 \
+            --region=asia-east1 \
             --tag=asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/chatbot-api-repo/chatbot-api:v1 \
             ./backend/src/chatbot
 
