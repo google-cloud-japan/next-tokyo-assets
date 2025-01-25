@@ -43,7 +43,6 @@ jobs:
             --allow-unauthenticated \
             --set-env-vars=VERTEX_AI_LOCATION=asia-northeast1,PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},GENERATIVE_MODEL_NAME=gemini-pro
 
-                    if: github.event_name == 'pull_request'
       - name: Deploy to Production
         if: github.event_name == 'push'
         run: |
