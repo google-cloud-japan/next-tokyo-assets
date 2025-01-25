@@ -2,7 +2,9 @@ name: Deploy to Cloud Run
 
 on:
   push:
-    branches: [develop]
+    branches: [ 'main', 'develop' ]
+  pull_request:
+    branches: [ 'main', 'develop' ]
 
 jobs:
   build-and-deploy:
@@ -27,17 +29,31 @@ jobs:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       # 4. Cloud Run にデプロイ
-      - name: Build container image
+      - name: Deploy to staging
+        if: github.event_name == 'pull_request'
         run: |
           gcloud builds submit \
             --region=asia-east1 \
-            --tag=asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/chatbot-api-repo/chatbot-api:v1 \
+            --tag=asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/chatbot-api-repo/chatbot-api:pr-${{ github.run_number }}
             ./backend/src/chatbot
 
-      - name: Deploy to Cloud Run
-        run: |
           gcloud run deploy chatbot-api \
-            --image=asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/chatbot-api-repo/chatbot-api:v1 \
+            --image=asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/chatbot-api-repo/chatbot-api:pr-${{ github.run_number }} \
+            --region=asia-northeast1 \
+            --allow-unauthenticated \
+            --set-env-vars=VERTEX_AI_LOCATION=asia-northeast1,PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},GENERATIVE_MODEL_NAME=gemini-pro
+
+                    if: github.event_name == 'pull_request'
+      - name: Deploy to Production
+        if: github.event_name == 'push'
+        run: |
+          gcloud builds submit \
+            --region=asia-east1 \
+            --tag=asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/chatbot-api-repo/chatbot-api:latest \
+            ./backend/src/chatbot
+
+          gcloud run deploy chatbot-api \
+            --image=asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/chatbot-api-repo/chatbot-api:latest \
             --region=asia-northeast1 \
             --allow-unauthenticated \
             --set-env-vars=VERTEX_AI_LOCATION=asia-northeast1,PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},GENERATIVE_MODEL_NAME=gemini-pro
