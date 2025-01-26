@@ -51,7 +51,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   /// 新規目標をFirestoreに追加する
-  Future<void> _addObjective(String objective) async {
+  Future<void> _addGoal(String goal) async {
     // 現在ログインしているユーザー
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
@@ -60,19 +60,19 @@ class _ChatPageState extends State<ChatPage> {
     }
 
     try {
-      final objectiveId = _firestore
+      final goalId = _firestore
           .collection('users')
           .doc(currentUser.uid)
-          .collection('objectives')
+          .collection('goals')
           .doc()
           .id;
       await _firestore
           .collection('users')
           .doc(currentUser.uid)
-          .collection('objectives')
-          .doc(objectiveId)
+          .collection('goals')
+          .doc(goalId)
           .set({
-        'objective': objective,
+        'goal': goal,
         'createdAt': FieldValue.serverTimestamp(),
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -151,12 +151,12 @@ class _ChatPageState extends State<ChatPage> {
                               context: context,
                               builder: (BuildContext context) {
                                 final TextEditingController
-                                    objectiveController =
+                                    goalController =
                                     TextEditingController();
                                 return AlertDialog(
                                   title: const Text('新規目標追加'),
                                   content: TextField(
-                                    controller: objectiveController,
+                                    controller: goalController,
                                     decoration: const InputDecoration(
                                       hintText: '目標を入力してください',
                                     ),
@@ -170,10 +170,10 @@ class _ChatPageState extends State<ChatPage> {
                                     ),
                                     TextButton(
                                       onPressed: () {
-                                        final objective =
-                                            objectiveController.text.trim();
-                                        if (objective.isNotEmpty) {
-                                          _addObjective(objective);
+                                        final goal =
+                                            goalController.text.trim();
+                                        if (goal.isNotEmpty) {
+                                          _addGoal(goal);
                                         }
                                         Navigator.of(context).pop();
                                       },
@@ -196,7 +196,7 @@ class _ChatPageState extends State<ChatPage> {
                 stream: _firestore
                     .collection('users')
                     .doc(currentUser.uid)
-                    .collection('objectives')
+                    .collection('goals')
                     .orderBy('createdAt', descending: true)
                     .snapshots(),
                 builder: (context, snapshot) {
@@ -209,13 +209,13 @@ class _ChatPageState extends State<ChatPage> {
                     itemCount: docs.length,
                     itemBuilder: (context, index) {
                       final data = docs[index].data() as Map<String, dynamic>;
-                      final objective = data['objective'] ?? 'No Objective';
+                      final goal = data['goal'] ?? 'No Goal';
                       return ListTile(
-                        title: Text(objective),
+                        title: Text(goal),
                         onTap: () {
                           Navigator.pop(context);
                           // 目標をタップしたときの処理をここに記述
-                          // そのObjectiveのIDを取得して、それに紐づくchatを表示する
+                          // そのGoalのIDを取得して、それに紐づくchatを表示する
                         },
                       );
                     },
