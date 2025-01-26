@@ -4,3 +4,4 @@ google-cloud-aiplatform>=1.74.0
 pydantic==2.6.3
 python-dotenv>=1.0.0
 firebase-admin>=6.4.0 
+cloudevents==1.10.1
