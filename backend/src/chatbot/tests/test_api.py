@@ -1,5 +1,7 @@
-import requests
 import json
+
+import requests
+
 
 def test_chat_api():
     """
@@ -9,7 +11,7 @@ def test_chat_api():
     適切なレスポンスを返すことを検証します。
     具体的なテストケースとして、日常的な質問や相談を想定したプロンプトを使用しています。
     """
-    url = "http://localhost:8080/chat"
+    url = "http://localhost:8080/api/objective/generate"
     headers = {
         "Content-Type": "application/json"
     }
@@ -19,11 +21,13 @@ def test_chat_api():
     test_cases = [
         {
             "prompt": "英語の勉強をしたいです。TOEICで800点を取ることが目標です。",
-            "chat_history": []
+            "userId": "test_user_id",
+            "goalId": "test_goal_id",
         },
         {
             "prompt": "プログラミングスキルを向上させたい。3ヶ月でPythonを使って機械学習プロジェクトができるようになりたいです。",
-            "chat_history": []
+            "userId": "test_user_id",
+            "goalId": "test_goal_id",
         }
     ]
 

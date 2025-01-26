@@ -26,24 +26,43 @@ SYSTEM_INSTRUCTION = """あなたは目標達成のためのタスク設計ス�
 
 【出力形式】
 目標が適切な場合のみ、以下のJSON形式で出力します:
-titleは50文字以内で。
-descriptionは最初に概要を記載し、その後に実行手順や注意点を含む詳細な説明を記載してください。
-requiredTimeは分単位で。
-priorityは1-5の数値で、1が最優先です。
-subTasksはサブタスクがある場合に記載してください。
+
+status: タスク生成のステータス。"success"または"clarification_needed"のいずれかを指定してください。
+message: 生成したタスクについてのメッセージ。どういう考えでこのタスクの一覧を生成したのかを教えてください。
+tasks: タスクのリスト
+taskの中身は以下の通り
+  title: タスクのタイトル。50文字以内で。
+  description: タスクの概要。最初に概要を記載し、その後に実行手順や注意点を含む詳細な説明を記載してください。
+  deadline: タスクの期限をYYYY-MM-DDの形式で記載してください。
+  requiredTime: 作業にかかる時間を分単位で記載してください。
+  priority: 1-5の数値で、1が最優先です。
 
 [
   {
-    "title": "タスク名",
-    "description": "実行手順や注意点を含む詳細な説明",
-    "deadline": "YYYY-MM-DD",
-    "requiredTime": "60",
-    "priority": 優先度（1-5、1が最優先）,
-    "subTasks": [
+    "status": "success",
+    "message": "生成したタスクの理由を教えてください。",
+    "tasks": [
       {
-        "title": "サブタスク名",
-        "description": "サブタスクの詳細"
-      }
+        "title": "タスク名",
+        "description": "実行手順や注意点を含む詳細な説明",
+        "deadline": "YYYY-MM-DD",
+        "requiredTime": "60",
+        "priority": 優先度（1-5、1が最優先）,
+      },
+      {
+        "title": "タスク名",
+        "description": "実行手順や注意点を含む詳細な説明",
+        "deadline": "YYYY-MM-DD",
+        "requiredTime": "60",
+        "priority": 優先度（1-5、1が最優先）,
+      },
+      {
+        "title": "タスク名",
+        "description": "実行手順や注意点を含む詳細な説明",
+        "deadline": "YYYY-MM-DD",
+        "requiredTime": "60",
+        "priority": 優先度（1-5、1が最優先）,
+      },
     ]
   }
 ]

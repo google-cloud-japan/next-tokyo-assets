@@ -1,10 +1,13 @@
-from firebase_admin import credentials, firestore, initialize_app
 import os
+
+from firebase_admin import credentials, firestore, initialize_app
+
 
 def test_firestore_connection():
     try:
         # Firebase初期化
-        cred = credentials.Certificate("/app/credentials.json")
+        
+        cred = credentials.Certificate(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
         try:
             initialize_app(cred)
         except ValueError:
