@@ -1,16 +1,41 @@
-# task_trail
+# アーキテクチャ
 
-A new Flutter project.
+## レイヤードアーキテクチャ構成
 
-## Getting Started
+```bash
+lib/
+│
+├── model/                   # データモデル（ビジネスロジック用のデータ）
+├── view/                    # UI関連（ウィジェット）
+│   └── common/              # 共通ウィジェット
+├── viewmodel/               # ビジネスロジック（ViewModel）
+├── repository/              # リポジトリ（データ取得や保存のインターフェース）
+├── firebase/                # Firebase 関連の設定やサービス
+└── main.dart                # エントリーポイント
+```
 
-This project is a starting point for a Flutter application.
+## 各フォルダの詳細
 
-A few resources to get you started if this is your first Flutter project:
+1. model/ フォルダ
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+データモデルは、アプリケーションで使用されるオブジェクトや構造体を定義する場所です。例えば、ユーザー情報やメッセージのモデルが含まれます。
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. view/ フォルダ
+
+UI コンポーネントを格納します。具体的には、ユーザーインターフェースの画面やウィジェットを配置します。
+
+1. viewmodel/ フォルダ
+
+ビジネスロジックを担当するクラスを格納します。ここでは、ユーザーの操作や状態の管理、API からのデータ取得などを行います。
+
+1. repository/ フォルダ
+
+データの取得や保存に関連するコードを格納します。Firebase などの外部サービスとやり取りするインターフェースを管理します。
+
+1. firebase/ フォルダ
+
+Firebase 関連の設定やサービスコードを格納します。Firebase の初期化や API 通信設定を管理します。
+
+1. main.dart
+
+アプリケーションのエントリーポイントであり、ルーティングやアプリ全体の設定を行います。
