@@ -1,0 +1,38 @@
+name: Deploy Flutter to Firebase Hosting
+
+on:
+  push:
+    branches: [ 'main', 'develop' ]
+  pull_request:
+    branches: [ 'main', 'develop' ]
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) ソースコードをチェックアウト
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      # 2) Flutter をセットアップ（Flutter Actionを使用）
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'   # or 'beta', 'master' etc.
+      
+      # 3) 依存関係を取得
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 4) Flutter Web のビルド
+      - name: Build Flutter Web
+        run: flutter build web
+
+      # 5) Firebase Hosting へのデプロイ
+      - name: Deploy to Firebase Hosting
+        uses: w9jds/firebase-action@main
+        with:
+          args: deploy --only hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
