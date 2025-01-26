@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hackathon_test1/chat.dart';
-import 'package:hackathon_test1/utils/safe_use_context_extension.dart';
+import 'package:hackathon_test1/views/common/snackbar_helper.dart';
 import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -100,26 +100,18 @@ class _SignInScreenState extends State<SignInScreen> {
         password: password,
       );
       User? user = userCredential.user;
-      safeUseContext((context) {
-        if (user != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('ユーザー登録に成功しました')),
-          );
+      if (user != null) {
+        const SnackBar(content: Text('ユーザー登録に成功しました'));
+        if (mounted) {
           Navigator.pushReplacementNamed(context, '/chat');
         }
-      });
+      }
     } on FirebaseAuthException catch (e) {
-      safeUseContext((context) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('登録エラー: ${e.message}')),
-        );
-      });
+      // ignore: use_build_context_synchronously
+      SnackbarHelper.show(context, 'Firebase アカウント登録エラー: ${e.message}');
     } catch (e) {
-      safeUseContext((context) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エラー: $e')),
-        );
-      });
+      // ignore: use_build_context_synchronously
+      SnackbarHelper.show(context, 'エラー: ${e.toString()}');
     }
   }
 
@@ -132,23 +124,14 @@ class _SignInScreenState extends State<SignInScreen> {
         email: email,
         password: password,
       );
-      safeUseContext((context) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ログインに成功しました')),
-        );
-      });
+      // ignore: use_build_context_synchronously
+      SnackbarHelper.show(context, 'ログインに成功しました');
     } on FirebaseAuthException catch (e) {
-      safeUseContext((context) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ログインエラー: ${e.message}')),
-        );
-      });
+      // ignore: use_build_context_synchronously
+      SnackbarHelper.show(context, 'ログインエラー: ${e.message}');
     } catch (e) {
-      safeUseContext((context) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エラー: $e')),
-        );
-      });
+      // ignore: use_build_context_synchronously
+      SnackbarHelper.show(context, 'ログインエラー: ${e.toString()}');
     }
   }
 
