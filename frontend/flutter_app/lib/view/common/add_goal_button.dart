@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hackathon_test1/viewmodels/goal_viewmodel.dart';
+import 'package:hackathon_test1/viewmodel/goal_viewmodel.dart';
 
 class AddGoalButton extends StatelessWidget {
   final GoalViewModel viewModel;
@@ -13,12 +13,12 @@ class AddGoalButton extends StatelessWidget {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            final TextEditingController objectiveController =
+            final TextEditingController goalController =
                 TextEditingController();
             return AlertDialog(
               title: const Text('新規目標追加'),
               content: TextField(
-                controller: objectiveController,
+                controller: goalController,
                 decoration: const InputDecoration(
                   hintText: '目標を入力してください',
                 ),
@@ -32,9 +32,9 @@ class AddGoalButton extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () {
-                    final objective = objectiveController.text.trim();
-                    if (objective.isNotEmpty) {
-                      viewModel.addGoal(objective, context);
+                    final goal = goalController.text.trim();
+                    if (goal.isNotEmpty) {
+                      viewModel.addGoal(goal, context);
                     }
                     Navigator.of(context).pop();
                   },
