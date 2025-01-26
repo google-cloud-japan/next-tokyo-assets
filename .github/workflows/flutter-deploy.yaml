@@ -23,15 +23,19 @@ jobs:
       
       # 3) 依存関係を取得
       - name: Install dependencies
-        run: flutter pub get
+        run: |
+          cd frontend/flutter_app
+          flutter pub get
 
       # 4) Flutter Web のビルド
       - name: Build Flutter Web
-        run: flutter build web
+        run: |
+          cd frontend/flutter_app
+          flutter build web
 
       # 5) Firebase Hosting へのデプロイ
       - name: Deploy to Firebase Hosting
-        uses: w9jds/firebase-action@main
+        uses: w9jds/firebase-action@master
         with:
           args: deploy --only hosting
         env:
