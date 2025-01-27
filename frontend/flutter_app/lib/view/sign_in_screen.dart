@@ -60,6 +60,31 @@ class SignInScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            // --- 【追加】Googleでサインイン ボタン ---
+            ElevatedButton(
+              onPressed: () async {
+                // Googleサインイン処理を呼び出す
+                // authViewModel.googleSignIn(context);
+                await ref.read(authViewModelProvider).signInWithGoogle();
+                Navigator.pushReplacementNamed(context, '/chat');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/images/google_logo.png', // もしGoogleロゴ画像を置くなら
+                    height: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('Sign in with Google'),
+                ],
+              ),
+            ),
           ],
         ),
       ),

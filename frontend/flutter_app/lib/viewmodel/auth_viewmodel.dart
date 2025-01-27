@@ -2,7 +2,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:google_sign_in/google_sign_in.dart';
 import '../model/user_credentials.dart';
 import '../view/common/snackbar_helper.dart';
 
@@ -11,6 +11,7 @@ final authViewModelProvider = ChangeNotifierProvider((ref) => AuthViewModel());
 class AuthViewModel extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
+  // 既存、メールアドレスとパスワードのサインアップ
   Future<void> signUp(UserCredentials credentials, BuildContext context) async {
     if (!credentials.isValid) {
       SnackbarHelper.show(context, 'メールアドレスとパスワードを入力してください。');
@@ -29,6 +30,7 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  // 既存、メールアドレスとパスワードのサインイン
   Future<void> signIn(UserCredentials credentials, BuildContext context) async {
     if (!credentials.isValid) {
       SnackbarHelper.show(context, 'メールアドレスとパスワードを入力してください。');
@@ -46,6 +48,88 @@ class AuthViewModel extends ChangeNotifier {
       }
     } on FirebaseAuthException catch (e) {
       SnackbarHelper.show(context, 'ログインエラー: ${e.message}');
+      print('ログインエラー: ${e.message}');
+    }
+  }
+  // --- ここから Googleサインイン追加 ---
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: [
+      'email',
+      'profile',
+    ],
+  );
+
+  Future<void> googleSignIn(BuildContext context) async {
+    try {
+      // サインイン済みなら signInSilently を試行
+      final existingUser = await _googleSignIn.signInSilently();
+      if (existingUser != null) {
+        // すでにログイン済みなら、そのまま使う
+        print("Already signed in with Google: ${existingUser.email}");
+        // ここでトークンを取得し、バックエンド連携するなり Firebase Auth にリンクするなり
+        final auth = await existingUser.authentication;
+        final accessToken = auth.accessToken;
+        final idToken = auth.idToken;
+        print('AccessToken: $accessToken');
+        print('IDToken: $idToken');
+        // TODO: サーバーへ送信 or Firebase signInWithCredential など
+        Navigator.pushReplacementNamed(context, '/chat');
+        return;
+      }
+
+      // まだなら、Googleアカウント選択画面が出る
+      final account = await _googleSignIn.signIn();
+      if (account == null) {
+        // ユーザーがキャンセルした
+        print("Google sign in cancelled by user.");
+        return;
+      }
+
+      // 成功時の処理
+      print("Google sign in success: ${account.email}");
+      final auth = await account.authentication;
+      final accessToken = auth.accessToken;
+      final idToken = auth.idToken;
+      print('AccessToken: $accessToken');
+      print('IDToken: $idToken');
+      Navigator.pushReplacementNamed(context, '/chat');
+
+      // TODO: ここでサーバーにトークンを渡す or Firebaseと連携など
+      // 例: Firebaseに連携する場合 => signInWithCredential(GoogleAuthProvider.credential(idToken: idToken))
+      // 例: 独自バックエンドの場合 => POST /google_auth でサーバーサイド検証
+    } catch (e) {
+      print("Google sign in failed: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Google SignIn Failed: $e")),
+      );
+    }
+  }
+
+  // Googleサインアウト（必要であれば）
+  Future<void> googleSignOut(BuildContext context) async {
+    await _googleSignIn.signOut();
+    print("Google signed out");
+  }
+
+  Future<void> signInWithGoogle() async {
+    try {
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        // ユーザーがキャンセルした場合
+        return;
+      }
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      // ここで FirebaseAuth にサインイン
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      // これで FirebaseAuth.instance.currentUser が有効になる
+      print("FirebaseAuth signIn success: ${FirebaseAuth.instance.currentUser?.uid}");
+    } catch (e) {
+      print("Google sign in error: $e");
     }
   }
 }

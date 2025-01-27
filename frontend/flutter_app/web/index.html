@@ -17,6 +17,12 @@
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
+
+  <meta
+    name="google-signin-client_id"
+    content="ai-hackathon-test1.apps.googleusercontent.com"
+  />
+
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
 
@@ -30,6 +36,10 @@
   <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>task_trail</title>
+  <!-- ここに Firebase SDK のCDNを読み込む -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <!-- 必要であれば analytics, firestore など他のSDKも -->
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
