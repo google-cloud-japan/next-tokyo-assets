@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../model/user_credentials.dart';
 import '../view/common/snackbar_helper.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 final authViewModelProvider = ChangeNotifierProvider((ref) => AuthViewModel());
 
@@ -112,24 +113,39 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> signInWithGoogle() async {
-    try {
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        // ユーザーがキャンセルした場合
-        return;
-      }
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      // ここで FirebaseAuth にサインイン
-      await FirebaseAuth.instance.signInWithCredential(credential);
+    if (kIsWeb) {
+      // Webの場合: signInWithPopup() が使える
+      await FirebaseAuth.instance.signInWithPopup(GoogleAuthProvider());
+    } else {
+      // iOS/Androidの場合: google_sign_in を使う
+      try {
+        final googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) {
+          // ユーザーがキャンセルした場合
+          return;
+        }
+        final googleAuth = await googleUser.authentication;
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        // ここで FirebaseAuth にサインイン
+        await FirebaseAuth.instance.signInWithCredential(credential);
 
-      // これで FirebaseAuth.instance.currentUser が有効になる
-      print("FirebaseAuth signIn success: ${FirebaseAuth.instance.currentUser?.uid}");
-    } catch (e) {
-      print("Google sign in error: $e");
+        // これで FirebaseAuth.instance.currentUser が有効になる
+        print("FirebaseAuth signIn success: ${FirebaseAuth.instance.currentUser?.uid}");
+      } catch (e) {
+        print("Google sign in error: $e");
+      }
     }
+  }
+
+  Future<void> signInWithGooglePopup() async {
+    // Web専用API: signInWithPopup
+    await FirebaseAuth.instance.signInWithPopup(GoogleAuthProvider());
+
+    // サインイン成功後は FirebaseAuth.instance.currentUser が取得できます
+    final user = FirebaseAuth.instance.currentUser;
+    print('User: ${user?.email}');
   }
 }
