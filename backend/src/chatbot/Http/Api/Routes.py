@@ -8,6 +8,10 @@ from Infrastructure.Gateways.VertexAiGateway import VertexAiGateway
 from Repositories.ChatRepository import ChatHistoryRepository
 from Services.ChatService import ChatService
 from UseCases.GenerateTaskUseCase import GenerateTaskUseCase
+from pydantic import BaseModel
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +22,8 @@ llmGateway = VertexAiGateway()
 chatRepository = ChatHistoryRepository()
 chatService = ChatService(llmGateway)
 
+class TokenData(BaseModel):
+    access_token: str
 
 @router.post("/api/goal/generate", response_model=GoalGenerateResponse)
 async def generate_goal(request: GoalGenerateRequest) -> GoalGenerateResponse:
@@ -68,6 +74,36 @@ async def generate_goal(request: GoalGenerateRequest) -> GoalGenerateResponse:
     )
 
     return response
+
+
+@router.post("/addEvent")
+def add_event(token_data: TokenData):
+    """
+        Google認証のテスト用API
+    """
+    # 1) GoogleカレンダーAPIのクライアントを初期化
+    creds = Credentials(token=token_data.access_token)
+    service = build("calendar", "v3", credentials=creds)
+
+    # 2) 追加するイベントの情報
+    event = {
+        'summary': 'テストイベント',
+        'location': 'Tokyo',
+        'description': 'これはテスト',
+        'start': {
+            'dateTime': '2025-02-01T09:00:00',
+            'timeZone': 'Asia/Tokyo',
+        },
+        'end': {
+            'dateTime': '2025-02-01T10:00:00',
+            'timeZone': 'Asia/Tokyo',
+        },
+    }
+
+    # 3) イベントをインサート
+    created_event = service.events().insert(calendarId='primary', body=event).execute()
+
+    return {"status": "ok", "created_event": created_event}
 
 
 @router.get("/api/health")
