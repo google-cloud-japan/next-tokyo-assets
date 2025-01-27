@@ -12,7 +12,12 @@
           "package_name": "com.example.hackathon_test1"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "514173068988-2d36jml7cs6bk9uvf1rsb78fc5e818fa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDLuwjOhwCnDRvYqXBl2m97wFPm5ee5YIM"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "514173068988-2d36jml7cs6bk9uvf1rsb78fc5e818fa.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "514173068988-609h746aes8f4t64f8ih9i2stvbvripv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.hackathonTest1"
+              }
+            }
+          ]
         }
       }
     },
@@ -31,7 +48,20 @@
           "package_name": "com.example.task_trail"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "514173068988-9ok4074qlabmk5doauqre636rtva34lv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.task_trail",
+            "certificate_hash": "115bbd4cf1fd49a41e24e4911192a6a3adc15422"
+          }
+        },
+        {
+          "client_id": "514173068988-2d36jml7cs6bk9uvf1rsb78fc5e818fa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDLuwjOhwCnDRvYqXBl2m97wFPm5ee5YIM"
@@ -39,7 +69,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "514173068988-2d36jml7cs6bk9uvf1rsb78fc5e818fa.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "514173068988-609h746aes8f4t64f8ih9i2stvbvripv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.hackathonTest1"
+              }
+            }
+          ]
         }
       }
     }
