@@ -7,12 +7,14 @@ import 'package:hackathon_test1/view/common/add_goal_button.dart';
 import 'package:hackathon_test1/viewmodel/chat_viewmodel.dart';
 import 'package:hackathon_test1/viewmodel/goal_viewmodel.dart';
 
+import 'first_input_widget.dart';
+
 class ChatPage extends ConsumerWidget {
   const ChatPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final viewModel = ref.watch(chatViewModelProvider);
+    final chatViewModel = ref.watch(chatViewModelProvider);
     final goalViewModel = ref.watch(goalViewModelProvider);
     final user = FirebaseAuth.instance.currentUser;
 
@@ -21,10 +23,15 @@ class ChatPage extends ConsumerWidget {
         body: Center(child: Text('ログインしていません')),
       );
     }
+    final userId = user.uid;
 
     final chatStream =
-        viewModel.getChatStream(user.uid, viewModel.selectedGoalId);
-    final goalStream = viewModel.getGoalStream(user.uid);
+        chatViewModel.getChatStream(user.uid, chatViewModel.selectedGoalId);
+
+    // 目標一覧のStream
+    final goalStream = chatViewModel.getGoalStream(user.uid);
+    // 現在選択中のgoalId
+    final selectedGoalId = chatViewModel.selectedGoalId;
 
     return Scaffold(
       appBar: AppBar(
@@ -85,7 +92,8 @@ class ChatPage extends ConsumerWidget {
                       return ListTile(
                         title: Text(goal),
                         onTap: () {
-                          viewModel.setSelectedGoalId(goalId);
+                          // 目標を選択する箇所
+                          chatViewModel.setSelectedGoalId(goalId);
                           Navigator.pop(context); // drawerを閉じる
                         },
                       );
@@ -101,7 +109,7 @@ class ChatPage extends ConsumerWidget {
         children: [
           // メッセージ一覧
           Expanded(
-            child: viewModel.selectedGoalId != null
+            child: chatViewModel.selectedGoalId != null
                 ? StreamBuilder<QuerySnapshot>(
                     stream: chatStream,
                     builder: (context, snapshot) {
@@ -109,24 +117,59 @@ class ChatPage extends ConsumerWidget {
                         return const Center(child: CircularProgressIndicator());
                       }
                       final docs = snapshot.data!.docs;
-                      return ListView.builder(
-                        reverse: true,
-                        itemCount: docs.length,
-                        itemBuilder: (context, index) {
-                          final data =
-                              docs[index].data() as Map<String, dynamic>;
-                          final content = data['content'] ?? 'No Message';
-                          final role = data['role'] ?? 'Unknown';
-                          final createdAt =
-                              data['createdAt']?.toDate().toString() ??
-                                  'No Time';
-
-                          return ListTile(
-                            title: Text(content),
-                            subtitle: Text(createdAt),
-                          );
-                        },
-                      );
+                      final isEmpty = docs.isEmpty;
+                      // チャットが空の場合は「期日」「週あたり作業時間」も入力できるフォームを下部に出す
+                      if (isEmpty) {
+                        return FirstInputWidget(
+                          chatViewModel: chatViewModel,
+                          userId: userId,
+                          goalId: chatViewModel.selectedGoalId!,
+                        );
+                      } else {
+                        // すでにチャットが存在する場合 -> 普通のメッセージ送信欄のみ
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                              right: 16.0, left: 16.0, bottom: 32.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  height: 60, // 高さを広く
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.grey),
+                                  ),
+                                  child: TextField(
+                                    controller: chatViewModel.textController,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Enter message',
+                                      border: InputBorder.none,
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.send,
+                                  color: Colors.blueAccent,
+                                ),
+                                onPressed: () {
+                                  // 通常のメッセージ送信
+                                  chatViewModel.addMessage(
+                                    'tekitotekito',
+                                    context,
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      }
                     },
                   )
                 : Center(
@@ -141,7 +184,8 @@ class ChatPage extends ConsumerWidget {
                   ),
           ),
           // 入力欄
-          viewModel.selectedGoalId != null
+
+          chatViewModel.selectedGoalId != null
               ? Padding(
                   padding: const EdgeInsets.only(
                       right: 16.0, left: 16.0, bottom: 32.0),
@@ -156,7 +200,7 @@ class ChatPage extends ConsumerWidget {
                             border: Border.all(color: Colors.grey), // 枠線を追加
                           ),
                           child: TextField(
-                            controller: viewModel.textController,
+                            controller: chatViewModel.textController,
                             decoration: const InputDecoration(
                               hintText: 'Enter message',
                               border: InputBorder.none, // デフォルトの枠線を削除
@@ -172,7 +216,7 @@ class ChatPage extends ConsumerWidget {
                           color: Colors.blueAccent,
                         ),
                         onPressed: () {
-                          viewModel.addMessage('tekitotekito', context);
+                          chatViewModel.addMessage('tekitotekito', context);
                         },
                       ),
                     ],
