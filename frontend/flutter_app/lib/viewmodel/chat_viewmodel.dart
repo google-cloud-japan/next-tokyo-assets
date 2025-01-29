@@ -70,4 +70,50 @@ class ChatViewModel extends ChangeNotifier {
     selectedGoalId = goalId;
     notifyListeners();
   }
+
+  /// まだチャットが存在しない場合に初回送信時: 期日、週あたり作業時間、最初のメッセージをまとめて保存
+  Future<void> addGoalDataAndFirstMessage({
+    required BuildContext context,
+    required String userId,
+    required String goalId,
+    required DateTime deadline,
+    required double weeklyHours,
+    required String message,
+  }) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      SnackbarHelper.show(context, 'ログインしていません');
+      return;
+    }
+
+    try {
+      // 1) goals/(goalId) ドキュメントに deadline, weeklyHours を保存
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('goals')
+          .doc(goalId)
+          .update({
+        'deadline': deadline,
+        'weeklyHours': weeklyHours,
+      });
+
+      // 2) chat サブコレクションにメッセージを1件追加
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('goals')
+          .doc(goalId)
+          .collection('chat')
+          .add(ChatMessage(
+        content: message,
+        role: "user",
+        createdAt: DateTime.now(),
+      ).toJson());
+
+      SnackbarHelper.show(context, '期日・作業時間・メッセージを保存しました');
+    } catch (e) {
+      SnackbarHelper.show(context, 'Firestore 書き込みエラー: $e');
+    }
+  }
 }
