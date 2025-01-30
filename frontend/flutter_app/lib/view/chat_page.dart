@@ -25,8 +25,7 @@ class ChatPage extends ConsumerWidget {
     }
     final userId = user.uid;
 
-    final chatStream =
-        chatViewModel.getChatStream(user.uid, chatViewModel.selectedGoalId);
+    final chatStream = chatViewModel.getChatStream(user.uid, chatViewModel.selectedGoalId);
 
     // 目標一覧のStream
     final goalStream = chatViewModel.getGoalStream(user.uid);
@@ -142,12 +141,26 @@ class ChatPage extends ConsumerWidget {
                     ),
                   ),
           ),
-          // 入力欄
+          // ★★入力欄
+          StreamBuilder<QuerySnapshot>(
+            stream: chatStream,
+            builder: (context, snapshot) {
+              // まだデータがない（ロード中）の場合は空表示にしておく
+              if (!snapshot.hasData) {
+                return const SizedBox();
+              }
 
-          chatViewModel.selectedGoalId != null
-              ? Padding(
-                  padding: const EdgeInsets.only(
-                      right: 16.0, left: 16.0, bottom: 32.0),
+              // ドキュメントを取得
+              final docs = snapshot.data!.docs;
+              // チャットのドキュメントが空ではないか？
+              final notEmpty = docs.isNotEmpty;
+              // 目標が選択されているか？
+              final hasGoalId = chatViewModel.selectedGoalId != null;
+
+              // 両方の条件を満たす場合のみ入力欄を表示、それ以外は SizedBox() を返す
+              if (hasGoalId && notEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 16.0, left: 16.0, bottom: 32.0),
                   child: Row(
                     children: [
                       Expanded(
@@ -162,9 +175,11 @@ class ChatPage extends ConsumerWidget {
                             controller: chatViewModel.textController,
                             decoration: const InputDecoration(
                               hintText: 'Enter message',
-                              border: InputBorder.none, // デフォルトの枠線を削除
+                              border: InputBorder.none,
                               contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 16), // 内側の余白を設定
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
                             ),
                           ),
                         ),
@@ -180,8 +195,12 @@ class ChatPage extends ConsumerWidget {
                       ),
                     ],
                   ),
-                )
-              : const SizedBox(),
+                );
+              } else {
+                return const SizedBox();
+              }
+            },
+          ),
         ],
       ),
     );
