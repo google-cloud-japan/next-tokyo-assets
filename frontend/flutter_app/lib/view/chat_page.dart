@@ -127,48 +127,7 @@ class ChatPage extends ConsumerWidget {
                         );
                       } else {
                         // すでにチャットが存在する場合 -> 普通のメッセージ送信欄のみ
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                              right: 16.0, left: 16.0, bottom: 32.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  height: 60, // 高さを広く
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.grey),
-                                  ),
-                                  child: TextField(
-                                    controller: chatViewModel.textController,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Enter message',
-                                      border: InputBorder.none,
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 16,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.send,
-                                  color: Colors.blueAccent,
-                                ),
-                                onPressed: () {
-                                  // 通常のメッセージ送信
-                                  chatViewModel.addMessage(
-                                    'tekitotekito',
-                                    context,
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        );
+                        return SizedBox();
                       }
                     },
                   )
