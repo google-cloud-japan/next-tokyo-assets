@@ -85,7 +85,7 @@ class _FirstInputWidgetState extends State<FirstInputWidget> {
             child: TextField(
               controller: _messageController,
               decoration: const InputDecoration(
-                hintText: 'Enter message',
+                hintText: '目標を入力してください',
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 16,
