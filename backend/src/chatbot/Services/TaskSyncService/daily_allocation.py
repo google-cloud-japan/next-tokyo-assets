@@ -1,4 +1,3 @@
-import json
 from datetime import date, datetime, timedelta, time
 import math
 
@@ -7,7 +6,6 @@ import urgency_calculator
 import tasks_api_client
 
 TASK_TITLE = "AI hackathon Tasks"
-
 
 def update_allocated_slots(allocated_slots, current_day, task_title, allocated_slot_num):
     """
@@ -46,7 +44,6 @@ def update_allocated_slots(allocated_slots, current_day, task_title, allocated_s
 
     # 5) updated な日付辞書を再度挿入
     allocated_slots[current_day] = day_dict
-
 
 def allocate_tasks_day_by_day(
     tasks: list[dict],
@@ -162,8 +159,7 @@ def allocate_tasks_day_by_day(
 
 
 def main():
-    # スロット計算プログラムから「日毎のスロット数マップ」を取得
-    #    (以下、例として2025-01-26〜2025-02-02まで計算する想定)
+    # スロット計算プログラムから「日毎の稼働可能なスロット数」を取得
     start_dt = datetime(2025, 1, 26)
     end_dt = datetime(2025, 1, 28)
     day_slots_map = day_slot_calculator.get_day_slot_map(start_dt, end_dt)
@@ -212,7 +208,7 @@ def main():
                     notes=parent_notes,
                     due=due_datetime
                 )
-                # print(f"Created Parent Task: {parent_task['title']} due on {parent_task.get('due', 'N/A')}")
+                print(f"Created Parent Task: {parent_task['title']} due on {parent_task.get('due', 'N/A')}")
                 
                 # サブタスクを作成
                 for slot in range(1, allocated_slot_num + 1):
