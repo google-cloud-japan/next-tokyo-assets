@@ -101,7 +101,7 @@ class _FirstInputWidgetState extends State<FirstInputWidget> {
             children: [
               IconButton(
                 icon: const Icon(
-                  Icons.send,
+                  Icons.add,
                   color: Colors.blueAccent,
                 ),
                 onPressed: () async {
