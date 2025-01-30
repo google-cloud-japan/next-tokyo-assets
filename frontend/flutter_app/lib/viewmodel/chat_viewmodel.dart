@@ -96,6 +96,7 @@ class ChatViewModel extends ChangeNotifier {
           .update({
         'deadline': deadline,
         'weeklyHours': weeklyHours,
+        'prompt': message,
       });
 
       // 2) chat サブコレクションにメッセージを1件追加

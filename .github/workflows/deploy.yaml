@@ -42,7 +42,7 @@ jobs:
             --region=asia-northeast1 \
             --allow-unauthenticated \
             --service-account genai-backend-sa@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
-            --set-env-vars=VERTEX_AI_LOCATION=asia-northeast1,PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},GENERATIVE_MODEL_NAME=gemini-pro
+            --set-env-vars=VERTEX_AI_LOCATION=asia-northeast1,PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},GENERATIVE_MODEL_NAME=gemini-1.5-flash-preview-0514
 
       - name: Deploy to Production
         if: github.event_name == 'push'
@@ -57,4 +57,4 @@ jobs:
             --region=asia-northeast1 \
             --allow-unauthenticated \
             --service-account genai-backend-sa@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com \
-            --set-env-vars=VERTEX_AI_LOCATION=asia-northeast1,PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},GENERATIVE_MODEL_NAME=gemini-pro
+            --set-env-vars=VERTEX_AI_LOCATION=asia-northeast1,PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},GENERATIVE_MODEL_NAME=gemini-1.5-flash-preview-0514

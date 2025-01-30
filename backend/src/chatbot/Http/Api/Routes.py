@@ -86,6 +86,8 @@ async def generate_goal_eventarc(request: Request) -> dict:
 
     doc_data = doc_snapshot.to_dict()
     # doc_data 内に "prompt", "deadline", "weeklyHours" などが保存されている想定
+    logger.info(f"Fetched doc_data from Firestore: {doc_data}")
+
     prompt = doc_data.get("prompt", "")
     deadline = doc_data.get("deadline")
     weeklyHours = doc_data.get("weeklyHours")
@@ -96,7 +98,11 @@ async def generate_goal_eventarc(request: Request) -> dict:
 
     # 4. 既存の処理 (ユースケース) を呼び出す
     #    エラー処理などは _handle_goal_generation 内で行う。
-    logger.info("Calling goal generation use case from Eventarc endpoint...")
+    # 追加のログ：最終的にユースケースに渡す値を表示
+    logger.info(
+        f"Eventarc generation params -> prompt: {prompt}, userId: {userId}, "
+        f"goalId: {goalId}, deadline: {deadline}, weeklyHours: {weeklyHours}"
+    )
     try:
         result = _handle_goal_generation(
             prompt=prompt,
