@@ -7,6 +7,7 @@ import 'package:hackathon_test1/view/common/add_goal_button.dart';
 import 'package:hackathon_test1/viewmodel/chat_viewmodel.dart';
 import 'package:hackathon_test1/viewmodel/goal_viewmodel.dart';
 
+import 'chat_input_widget.dart';
 import 'first_input_widget.dart';
 
 class ChatPage extends ConsumerWidget {
@@ -145,57 +146,16 @@ class ChatPage extends ConsumerWidget {
           StreamBuilder<QuerySnapshot>(
             stream: chatStream,
             builder: (context, snapshot) {
-              // まだデータがない（ロード中）の場合は空表示にしておく
               if (!snapshot.hasData) {
                 return const SizedBox();
               }
 
-              // ドキュメントを取得
               final docs = snapshot.data!.docs;
-              // チャットのドキュメントが空ではないか？
               final notEmpty = docs.isNotEmpty;
-              // 目標が選択されているか？
               final hasGoalId = chatViewModel.selectedGoalId != null;
 
-              // 両方の条件を満たす場合のみ入力欄を表示、それ以外は SizedBox() を返す
               if (hasGoalId && notEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 16.0, left: 16.0, bottom: 32.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: 60, // 高さを広く設定
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12), // 角を丸くする
-                            border: Border.all(color: Colors.grey), // 枠線を追加
-                          ),
-                          child: TextField(
-                            controller: chatViewModel.textController,
-                            decoration: const InputDecoration(
-                              hintText: 'Enter message',
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.send,
-                          color: Colors.blueAccent,
-                        ),
-                        onPressed: () {
-                          chatViewModel.addMessage('tekitotekito', context);
-                        },
-                      ),
-                    ],
-                  ),
-                );
+                return ChatInputArea(chatViewModel: chatViewModel);
               } else {
                 return const SizedBox();
               }
