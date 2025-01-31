@@ -3,6 +3,12 @@ FROM python:3.11-slim
 # タイムゾーンを設定
 ENV TZ=Asia/Tokyo
 
+# ここで、コンパイラや geos ライブラリをインストール
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libgeos-dev \
+ && rm -rf /var/lib/apt/lists/*
+
 # GCPプロジェクトIDとVertex AIのリージョンを設定
 # PROJECT_IDはご自身のプロジェクトIDに変更してください
 ENV PROJECT_ID=tasktrail-ao
