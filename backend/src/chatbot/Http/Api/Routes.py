@@ -1,15 +1,21 @@
-import json
 import logging
 
 from fastapi import APIRouter, HTTPException, Request
 from cloudevents.http import from_http
-from google.cloud import firestore
 
-from Http.Api.Schemas import GoalGenerateRequest, GoalGenerateResponse
+from Http.Api.Schemas import (
+    GoalGenerateRequest,
+    GoalGenerateResponse,
+    TaskSaveRequest,
+    TaskSaveResponse,
+)
+from Infrastructure.Firebase.FirebaseClient import FirebaseClient
 from Infrastructure.Gateways.VertexAiGateway import VertexAiGateway
 from Repositories.ChatRepository import ChatHistoryRepository
+from Repositories.TaskRepository import TaskRepository
 from Services.ChatService import ChatService
 from UseCases.GenerateTaskUseCase import GenerateTaskUseCase
+from UseCases.SaveTaskUseCase import SaveTaskUseCase
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +25,10 @@ router = APIRouter()
 llmGateway = VertexAiGateway()
 chatRepository = ChatHistoryRepository()
 chatService = ChatService(llmGateway)
-db = firestore.Client()  # Firestore クライアントを用意
+firebase_client = FirebaseClient.get_instance()
+db = firebase_client.db
+taskRepository = TaskRepository()
+
 
 @router.post("/api/goal/generate", response_model=GoalGenerateResponse)
 async def generate_goal(request: GoalGenerateRequest) -> GoalGenerateResponse:
@@ -134,7 +143,7 @@ def _handle_goal_generation(
     この共通関数を呼び出す形にして重複を減らす。
     """
 
-    useCase = GenerateTaskUseCase(chatService, chatRepository)
+    useCase = GenerateTaskUseCase(chatService, chatRepository, taskRepository)
     goalUseCaseInput = useCase.Input(
         prompt=prompt,
         userId=userId,
@@ -163,6 +172,31 @@ def _handle_goal_generation(
         tasks=goalUseCaseOutput.tasks,
         error=goalUseCaseOutput.errorMessage,
     )
+
+
+@router.post("/api/task/save", response_model=TaskSaveResponse)
+async def save_task(request: TaskSaveRequest) -> TaskSaveResponse:
+    """
+    ユーザがタスクを保存したときに、そのタスクを保存する
+    """
+    saveTaskUseCase = SaveTaskUseCase(TaskRepository())
+
+    # Pydanticモデルを辞書に変換
+    task_dicts = [task.dict() for task in request.tasks]
+
+    saveTaskUseCaseInput = saveTaskUseCase.Input(
+        tasks=task_dicts,
+        userId=request.userId,
+        goalId=request.goalId,
+    )
+
+    saveTaskUseCaseOutput = saveTaskUseCase.save(saveTaskUseCaseInput)
+    return TaskSaveResponse(
+        success=saveTaskUseCaseOutput.success,
+        message=saveTaskUseCaseOutput.message,
+        error=saveTaskUseCaseOutput.errorMessage,
+    )
+
 
 @router.get("/api/health")
 async def health_check() -> dict:
