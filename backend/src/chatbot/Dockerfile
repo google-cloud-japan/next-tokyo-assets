@@ -7,7 +7,7 @@ ENV TZ=Asia/Tokyo
 # PROJECT_IDはご自身のプロジェクトIDに変更してください
 ENV PROJECT_ID=tasktrail-ao
 ENV VERTEX_AI_LOCATION=asia-northeast1
-
+ENV GENERATIVE_MODEL_NAME=gemini-1.5-flash-preview-0514
 WORKDIR /app
 
 COPY requirements.txt .
