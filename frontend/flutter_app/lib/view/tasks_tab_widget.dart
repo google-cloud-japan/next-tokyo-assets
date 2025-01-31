@@ -6,8 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../viewmodel/chat_viewmodel.dart';
 
 /// 2つ目のタブ用のレイアウトサンプル
-class TaskWidget extends ConsumerWidget {
-  const TaskWidget({
+class TaskTabWidget extends ConsumerWidget {
+  const TaskTabWidget({
     Key? key,
   }) : super(key: key);
 

@@ -53,7 +53,7 @@ class ChatViewModel extends ChangeNotifier {
         .collection('goals')
         .doc(goalId)
         .collection('chat')
-        .orderBy('createdAt', descending: true)
+        .orderBy('created_at', descending: false)
         .snapshots();
   }
 
