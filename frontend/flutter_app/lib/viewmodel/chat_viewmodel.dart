@@ -12,6 +12,7 @@ class ChatViewModel extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController textController = TextEditingController();
   String? selectedGoalId;
+  String? selectedGoalText; // 追加: 選択した目標の文言
 
   // メッセージを Firestore に追加
   Future<void> addMessage(String notebookId, BuildContext context) async {
@@ -66,8 +67,9 @@ class ChatViewModel extends ChangeNotifier {
         .snapshots();
   }
 
-  void setSelectedGoalId(String goalId) {
+  void setSelectedGoalId(String goalId, String goalText) {
     selectedGoalId = goalId;
+    selectedGoalText = goalText;
     notifyListeners();
   }
 

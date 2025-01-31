@@ -32,7 +32,7 @@ class ChatPage extends ConsumerWidget {
       length: 2, // タブ数
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Task Trail'),
+          title: Text(chatViewModel.selectedGoalText ?? 'Task Trail'),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
@@ -96,7 +96,7 @@ class ChatPage extends ConsumerWidget {
                           title: Text(goal),
                           onTap: () {
                             // 目標を選択
-                            chatViewModel.setSelectedGoalId(goalId);
+                            chatViewModel.setSelectedGoalId(goalId, goal);
                             Navigator.pop(context); // Drawer を閉じる
                           },
                         );
