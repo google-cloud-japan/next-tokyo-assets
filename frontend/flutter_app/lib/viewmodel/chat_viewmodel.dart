@@ -96,6 +96,7 @@ class ChatViewModel extends ChangeNotifier {
           .update({
         'deadline': deadline,
         'weeklyHours': weeklyHours,
+        'prompt': message,
       });
 
       // 2) chat サブコレクションにメッセージを1件追加
@@ -106,10 +107,10 @@ class ChatViewModel extends ChangeNotifier {
           .doc(goalId)
           .collection('chat')
           .add(ChatMessage(
-        content: message,
-        role: "user",
-        createdAt: DateTime.now(),
-      ).toJson());
+            content: message,
+            role: "user",
+            createdAt: DateTime.now(),
+          ).toJson());
 
       SnackbarHelper.show(context, '期日・作業時間・メッセージを保存しました');
     } catch (e) {
