@@ -67,6 +67,23 @@ class ChatViewModel extends ChangeNotifier {
         .snapshots();
   }
 
+  /// 選択中の goalId に紐づく tasks コレクションを Stream で取得
+  Stream<QuerySnapshot> getTasksStream(String userId, String? goalId) {
+    if (goalId == null) {
+      // goalId が null の場合、空の Stream を返すか、あるいは例外を投げる。
+      return const Stream.empty();
+    }
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('goals')
+        .doc(goalId)
+        .collection('tasks')
+    // 並び順を指定したい場合（例：priority 昇順）
+    // .orderBy('priority', descending: false)
+        .snapshots();
+  }
+
   void setSelectedGoalId(String goalId, String goalText) {
     selectedGoalId = goalId;
     selectedGoalText = goalText;
