@@ -34,6 +34,13 @@ class TaskRepository:
                 .collection(DatabaseConfig.USERS_COLLECTION_NAME).document(userId) \
                 .collection(DatabaseConfig.GOALS_COLLECTION_NAME).document(goalId) \
                 .collection(DatabaseConfig.TASKS_COLLECTION_NAME)
+
+            # 既存のタスクを削除してから新しいタスクを追加する
+            delete_batch = self._db.batch()
+            for task_doc in tasks_ref.stream():
+                delete_batch.delete(task_doc.reference)
+            delete_batch.commit()
+
             """
              FireStoreのバッチ書き込みを開始
              バッチ書き込みは、複数のFireStore操作をまとめてアトミックに実行するための仕組み
