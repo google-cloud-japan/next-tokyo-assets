@@ -1,18 +1,32 @@
 import json
 import logging
+import os
 from datetime import datetime
 from typing import List
 
 import vertexai
-from vertexai.generative_models import Content, GenerationConfig, GenerativeModel, Part, Tool, grounding
+from vertexai.generative_models import (
+    Content,
+    GenerationConfig,
+    GenerativeModel,
+    Part,
+    Tool,
+    grounding,
+)
 
-from Config.LlmConfig import GENERATIVE_MODEL_NAME, PROJECT_ID, SYSTEM_INSTRUCTION, VERTEX_AI_LOCATION
+
 from Domain.Models.Chat import ChatMessage
 from Domain.Models.Task import Task
 from Domain.Models.TaskCollection import TaskCollection
-from Interfaces.ILlmGateway import RESPONSE_SCHEMA, ILlmGateway, TaskGenerationResult
+from Infrastructure.Gateways.LlmConfigFactory import LlmConfig
+from Interfaces.ILlmGateway import ILlmGateway, TaskGenerationResult
 
 logger = logging.getLogger(__name__)
+
+# Vertex AI設定
+PROJECT_ID = os.environ["PROJECT_ID"]
+VERTEX_AI_LOCATION = os.environ["VERTEX_AI_LOCATION"]
+GENERATIVE_MODEL_NAME = os.environ["GENERATIVE_MODEL_NAME"]
 
 class VertexAiGateway(ILlmGateway):
     # 応答のステータス
@@ -23,21 +37,18 @@ class VertexAiGateway(ILlmGateway):
         "clarification_needed": "clarification_needed",
     }
     """Vertex AIを使用したLLMゲートウェイの実装"""
-    def __init__(self):
-        """VertexAiGatewayの初期化"""
-        # Vertex AI初期化
-        vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
 
-        # グラウディングを使用するためのツールを定義
+    def __init__(self, config: LlmConfig):
+        """VertexAiGatewayの初期化"""
+        vertexai.init(project=PROJECT_ID, location=VERTEX_AI_LOCATION)
         self.tool = Tool.from_google_search_retrieval(grounding.GoogleSearchRetrieval())
-        # 生成モデルの初期化
         self.model = GenerativeModel(
             model_name=GENERATIVE_MODEL_NAME,
-            system_instruction=SYSTEM_INSTRUCTION,
+            system_instruction=config.system_instruction,
             tools=[self.tool],
             generation_config=GenerationConfig(
-                response_mime_type="application/json",
-                response_schema=RESPONSE_SCHEMA,
+                response_mime_type=config.response_mime_type,
+                response_schema=config.response_schema,
             ),
         )
         logger.info("Initialized VertexAiGateway")
@@ -133,5 +144,3 @@ class VertexAiGateway(ILlmGateway):
             )
             taskCollection.add(task)
         return taskCollection
-
-

@@ -1,35 +1,8 @@
 from dataclasses import dataclass
-from datetime import date
 from typing import List, Optional, Protocol
 
 from Domain.Models.Chat import ChatMessage
 from Domain.Models.TaskCollection import TaskCollection
-
-RESPONSE_SCHEMA = {
-    "type": "array",
-    "items": {
-        "type": "object",
-        "properties": {
-            "status": {"type": "string"},
-            "message": {"type": "string"},
-            "tasks": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "title": {"type": "string"},
-                        "description": {"type": "string"},
-                        "deadline": {"type": "string"},
-                        "requiredTime": {"type": "integer"},
-                        "priority": {"type": "integer", "minimum": 1, "maximum": 5},
-                    },
-                    "required": ["title", "description", "deadline", "requiredTime", "priority"],
-                },
-            },
-        },
-        "required": ["status", "message", "tasks"],
-    },
-}
 
 
 @dataclass(frozen=True)
