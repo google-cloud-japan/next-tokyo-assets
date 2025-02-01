@@ -6,6 +6,7 @@ import 'package:hackathon_test1/view/common/add_goal_button.dart';
 import 'package:hackathon_test1/view/tasks_widget.dart';
 import 'package:hackathon_test1/viewmodel/chat_viewmodel.dart';
 import 'package:hackathon_test1/viewmodel/goal_viewmodel.dart';
+
 import 'chat_input_widget.dart';
 import 'first_input_widget.dart';
 
@@ -58,7 +59,7 @@ class ChatPage extends ConsumerWidget {
                 SizedBox(
                   height: 150,
                   child: DrawerHeader(
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.blue,
                     ),
                     child: Column(
@@ -117,7 +118,7 @@ class ChatPage extends ConsumerWidget {
               goalViewModel: goalViewModel,
             ),
             // 2枚目 (タスクなど新しいレイアウト)
-            TaskWidget(),
+            const TaskWidget(),
           ],
         ),
       ),
@@ -128,11 +129,10 @@ class ChatPage extends ConsumerWidget {
 /// 1つ目のタブに表示するチャット用ウィジェットを分割
 class _ChatTabContent extends StatelessWidget {
   const _ChatTabContent({
-    Key? key,
     required this.userId,
     required this.chatViewModel,
     required this.goalViewModel,
-  }) : super(key: key);
+  });
 
   final String userId;
   final ChatViewModel chatViewModel;
@@ -149,35 +149,35 @@ class _ChatTabContent extends StatelessWidget {
         Expanded(
           child: selectedGoalId != null
               ? StreamBuilder<QuerySnapshot>(
-            stream: chatStream,
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              final docs = snapshot.data!.docs;
-              final isEmpty = docs.isEmpty;
-              // チャットが空の場合は FirstInputWidget
-              if (isEmpty) {
-                return FirstInputWidget(
-                  chatViewModel: chatViewModel,
-                  userId: userId,
-                  goalId: selectedGoalId,
-                );
-              } else {
-                // 既にチャットが存在する場合
-                return const SizedBox();
-              }
-            },
-          )
+                  stream: chatStream,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final docs = snapshot.data!.docs;
+                    final isEmpty = docs.isEmpty;
+                    // チャットが空の場合は FirstInputWidget
+                    if (isEmpty) {
+                      return FirstInputWidget(
+                        chatViewModel: chatViewModel,
+                        userId: userId,
+                        goalId: selectedGoalId,
+                      );
+                    } else {
+                      // 既にチャットが存在する場合
+                      return const SizedBox();
+                    }
+                  },
+                )
               : Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('目標を選択してください'),
-                AddGoalButton(viewModel: goalViewModel),
-              ],
-            ),
-          ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('目標を選択してください'),
+                      AddGoalButton(viewModel: goalViewModel),
+                    ],
+                  ),
+                ),
         ),
         // 入力欄
         StreamBuilder<QuerySnapshot>(
@@ -200,4 +200,3 @@ class _ChatTabContent extends StatelessWidget {
     );
   }
 }
-
