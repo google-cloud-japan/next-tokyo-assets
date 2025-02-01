@@ -8,12 +8,15 @@ from Http.Api.Schemas import (
     GoalGenerateResponse,
     TaskSaveRequest,
     TaskSaveResponse,
+    ChatMessageRequest,
+    ChatMessageResponse,
 )
 from Infrastructure.Firebase.FirebaseClient import FirebaseClient
 from Infrastructure.Gateways.VertexAiGateway import VertexAiGateway
 from Repositories.ChatRepository import ChatHistoryRepository
 from Repositories.TaskRepository import TaskRepository
 from Services.ChatService import ChatService
+from UseCases.ChatQuestioningUseCase import ChatQuestioningUseCase
 from UseCases.GenerateTaskUseCase import GenerateTaskUseCase
 from UseCases.SaveTaskUseCase import SaveTaskUseCase
 
@@ -29,6 +32,23 @@ firebase_client = FirebaseClient.get_instance()
 db = firebase_client.db
 taskRepository = TaskRepository()
 
+@router.post("/api/chat/send", response_model=ChatMessageRequest)
+async def send_chat(request: ChatMessageRequest) -> ChatMessageResponse:
+    """
+    ユーザが入力したメッセージ対してLLMが返信する
+    """
+    useCase = ChatQuestioningUseCase(chatService, chatRepository)
+    useCaseInput = useCase.Input(
+        prompt=request.prompt,
+        userId=request.userId,
+        goalId=request.goalId,
+    )
+    useCaseOutput = useCase.generate(useCaseInput)
+    return ChatMessageResponse(
+        success=True,
+        message=useCaseOutput.message,
+        error=useCaseOutput.errorMessage
+    )
 
 @router.post("/api/goal/generate", response_model=GoalGenerateResponse)
 async def generate_goal(request: GoalGenerateRequest) -> GoalGenerateResponse:
