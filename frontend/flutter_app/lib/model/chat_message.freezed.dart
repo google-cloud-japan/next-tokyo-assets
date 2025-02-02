@@ -22,6 +22,7 @@ ChatMessage _$ChatMessageFromJson(Map<String, dynamic> json) {
 mixin _$ChatMessage {
   String get content => throw _privateConstructorUsedError;
   String get role => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
   DateTime? get createdAt => throw _privateConstructorUsedError;
   bool get loading => throw _privateConstructorUsedError;
   List<String>? get ragFileIds => throw _privateConstructorUsedError;
@@ -46,7 +47,7 @@ abstract class $ChatMessageCopyWith<$Res> {
   $Res call(
       {String content,
       String role,
-      DateTime? createdAt,
+      @JsonKey(name: 'created_at') DateTime? createdAt,
       bool loading,
       List<String>? ragFileIds,
       String status});
@@ -114,7 +115,7 @@ abstract class _$$ChatMessageImplCopyWith<$Res>
   $Res call(
       {String content,
       String role,
-      DateTime? createdAt,
+      @JsonKey(name: 'created_at') DateTime? createdAt,
       bool loading,
       List<String>? ragFileIds,
       String status});
@@ -175,7 +176,7 @@ class _$ChatMessageImpl implements _ChatMessage {
   const _$ChatMessageImpl(
       {required this.content,
       required this.role,
-      this.createdAt,
+      @JsonKey(name: 'created_at') this.createdAt,
       this.loading = false,
       final List<String>? ragFileIds,
       this.status = 'success'})
@@ -189,6 +190,7 @@ class _$ChatMessageImpl implements _ChatMessage {
   @override
   final String role;
   @override
+  @JsonKey(name: 'created_at')
   final DateTime? createdAt;
   @override
   @JsonKey()
@@ -252,7 +254,7 @@ abstract class _ChatMessage implements ChatMessage {
   const factory _ChatMessage(
       {required final String content,
       required final String role,
-      final DateTime? createdAt,
+      @JsonKey(name: 'created_at') final DateTime? createdAt,
       final bool loading,
       final List<String>? ragFileIds,
       final String status}) = _$ChatMessageImpl;
@@ -265,6 +267,7 @@ abstract class _ChatMessage implements ChatMessage {
   @override
   String get role;
   @override
+  @JsonKey(name: 'created_at')
   DateTime? get createdAt;
   @override
   bool get loading;
