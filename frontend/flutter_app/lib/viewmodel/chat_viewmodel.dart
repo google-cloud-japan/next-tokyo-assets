@@ -11,8 +11,16 @@ final chatViewModelProvider = ChangeNotifierProvider((ref) => ChatViewModel());
 class ChatViewModel extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController textController = TextEditingController();
+  bool _isLoading = false;
   String? selectedGoalId;
   String? selectedGoalText; // 追加: 選択した目標の文言
+
+  bool get isLoading => _isLoading;
+
+  void setLoading(bool isLoading) {
+    _isLoading = isLoading;
+    notifyListeners();
+  }
 
   // メッセージを Firestore に追加
   Future<void> addMessage(String notebookId, BuildContext context) async {
@@ -79,8 +87,8 @@ class ChatViewModel extends ChangeNotifier {
         .collection('goals')
         .doc(goalId)
         .collection('tasks')
-    // 並び順を指定したい場合（例：priority 昇順）
-    // .orderBy('priority', descending: false)
+        // 並び順を指定したい場合（例：priority 昇順）
+        // .orderBy('priority', descending: false)
         .snapshots();
   }
 
@@ -132,6 +140,7 @@ class ChatViewModel extends ChangeNotifier {
           ).toJson());
 
       SnackbarHelper.show(context, '期日・作業時間・メッセージを保存しました');
+      setLoading(true); // Loading 開始
     } catch (e) {
       SnackbarHelper.show(context, 'Firestore 書き込みエラー: $e');
     }

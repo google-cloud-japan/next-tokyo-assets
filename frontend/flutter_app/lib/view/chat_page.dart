@@ -95,6 +95,16 @@ class ChatPage extends ConsumerWidget {
                           onTap: () {
                             // 目標を選択
                             chatViewModel.setSelectedGoalId(goalId, goal);
+
+                            // FIXME ここで Loading を false にするのは適切ではない。
+                            // 本当は[chatStream]を読み込んだ後にfalseにするべき
+                            // 現在、isLoading を viewmodel で管理している && chat_tab_widget.dart への遷移が
+                            // Stream 契機で、そこで viewmodel の メンバ変数の変更が出来ない。
+                            // そのためここで Loading の初期化を行っている
+                            // 本来は chat_tab_widget.dart を表示するタイミングで Loading を false にするべき
+
+                            // Loading の状態を初期化
+                            chatViewModel.setLoading(false);
                             Navigator.pop(context); // Drawer を閉じる
                           },
                         );
