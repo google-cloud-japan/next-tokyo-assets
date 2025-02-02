@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
-from Services.Chat import ChatMessageGeneratorService
+from Interfaces import ILlmGateway
 
 from Domain.Models.Chat import ChatMessage, ChatRole
 from Repositories.ChatRepository import ChatHistoryRepository
@@ -26,7 +26,7 @@ class ChatQuestioningUseCase:
 
     def __init__(
         self,
-        chatMessageGeneratorService: ChatMessageGeneratorService,
+        chatMessageGeneratorService: ILlmGateway,
         chatHistoryRepository: ChatHistoryRepository
     ):
 
@@ -73,17 +73,14 @@ class ChatQuestioningUseCase:
                     errorMessage=result.error,
                 )
 
-            chatMessages = []
-            chatMessages.append(
+            chatMessages = [
                 ChatMessage(
                     role=ChatRole.ASSISTANT,
                     content=result.message,
                     tasks=result.tasks,
                 )
-            )
+            ]
             self.chatHistoryRepository.add(chatMessages, input.userId, input.goalId)
-
-
 
             # 成功の場合
             return self.Output(

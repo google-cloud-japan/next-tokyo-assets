@@ -9,17 +9,13 @@ logger = logging.getLogger(__name__)
 
 
 class ChatMessageGeneratorService:
-
-
     @dataclass
     class GenerateResponseInput:
-
         prompt: str  # ユーザーからの入力テキスト
         chatHistory: Optional[List[ChatMessage]] = None  # チャット履歴
 
     @dataclass
     class GenerateResponseOutput:
-
         status: str  # "success" または "error"
         succeed: bool  # 生成に成功したかどうか
         message: Optional[str] = None  # メッセージ（成功時のみ存在）
@@ -50,5 +46,5 @@ class ChatMessageGeneratorService:
             return self.GenerateResponseOutput(
                 status="error",
                 succeed=False,
-                error="申し訳ございません。応答の生成に失敗しました。"
+                error="申し訳ございません。応答の生成に失敗しました。",
             )

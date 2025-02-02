@@ -19,7 +19,7 @@ from Domain.Models.Chat import ChatMessage
 from Domain.Models.Task import Task
 from Domain.Models.TaskCollection import TaskCollection
 from Infrastructure.Gateways.LlmConfigFactory import LlmConfig
-from Interfaces.ILlmGateway import ILlmGateway, TaskGenerationResult
+from Interfaces.ILlmGateway import ILlmGateway, GenerationResult
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 PROJECT_ID = os.environ["PROJECT_ID"]
 VERTEX_AI_LOCATION = os.environ["VERTEX_AI_LOCATION"]
 GENERATIVE_MODEL_NAME = os.environ["GENERATIVE_MODEL_NAME"]
+
 
 class VertexAiGateway(ILlmGateway):
     # 応答のステータス
@@ -53,7 +54,7 @@ class VertexAiGateway(ILlmGateway):
         )
         logger.info("Initialized VertexAiGateway")
 
-    def generateTask(self, prompt: str, context: List[ChatMessage]) -> TaskGenerationResult:
+    def generateTask(self, prompt: str, context: List[ChatMessage]) -> GenerationResult:
         """
         プロンプトとコンテキストからVertex AIを使用して応答を生成する
 
@@ -66,48 +67,58 @@ class VertexAiGateway(ILlmGateway):
         """
         try:
             # ドメインモデルのデータをLLMが求めるデータに変換する
+
             contents = self._convertChatMessagesToContents(context, prompt)
             # LLMにデータを渡して応答を生成する
             logger.info("Calling Vertex AI GenerativeModel...")
             response = self.model.generate_content(contents=contents)
-
             # レスポンスをJSONにパース
             response_list = json.loads(response.text)
             if not isinstance(response_list, list) or len(response_list) == 0:
-                return TaskGenerationResult.error(errorMessage="Invalid response format")
+                return GenerationResult.error(errorMessage="Invalid response format")
 
             response_dict = response_list[0]
             # 目標でないと判断された場合
-            if response_dict.get("status") == self.RESPONSE_STATUS["clarification_needed"]:
-                return TaskGenerationResult.error(
+            if (
+                response_dict.get("status")
+                == self.RESPONSE_STATUS["clarification_needed"]
+            ):
+                return GenerationResult.error(
                     errorMessage="目標のプロンプトを入力してください",
-                    llmResponse=response_dict.get("message")
+                    llmResponse=response_dict.get("message"),
                 )
 
             # タスクの生成
-            taskCollection = self._convertJsonToTaskCollection(response_dict.get("tasks",[]))
+            taskCollection = self._convertJsonToTaskCollection(
+                response_dict.get("tasks", [])
+            )
 
-            return TaskGenerationResult.success(
-                tasks=taskCollection,
-                llmResponse=response_dict.get("message")
+            return GenerationResult.success(
+                data={"tasks": taskCollection}, message=response_dict.get("message")
             )
 
         except json.JSONDecodeError:
-            return TaskGenerationResult.error(errorMessage="JSON解析エラー")
+            return GenerationResult.error(errorMessage="JSON解析エラー")
         except (KeyError, IndexError, TypeError) as err:
             logger.error(f"Error generating response: {err}", exc_info=True)
-            return TaskGenerationResult.error(errorMessage="応答の形式が不正です。もう一度お試しください。")
+            return GenerationResult.error(
+                errorMessage="応答の形式が不正です。もう一度お試しください。"
+            )
         except ValueError as e:
             logger.error(f"Error generating response: {e}", exc_info=True)
-            return TaskGenerationResult.error(errorMessage=f"無効な値が含まれています。もう一度お試しください。: {e}")
+            return GenerationResult.error(
+                errorMessage=f"無効な値が含まれています。もう一度お試しください。: {e}"
+            )
         except TimeoutError:
             logger.error("TimeoutError", exc_info=True)
-            return TaskGenerationResult.error(errorMessage="処理タイムアウト")
+            return GenerationResult.error(errorMessage="処理タイムアウト")
         except Exception as err:
             logger.error(f"Error generating response: {err}", exc_info=True)
-            return TaskGenerationResult.error(errorMessage="予期せぬエラーが発生しました。")
+            return GenerationResult.error(errorMessage="予期せぬエラーが発生しました。")
 
-    def _convertChatMessagesToContents(self, messages: List[ChatMessage], prompt: str) -> List[Content]:
+    def _convertChatMessagesToContents(
+        self, messages: List[ChatMessage], prompt: str
+    ) -> List[Content]:
         """
         ChatMessageのリストをLLMが求めるContent形式に変換する
         """

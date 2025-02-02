@@ -5,7 +5,7 @@ from typing import List, Optional
 from Domain.Models.Chat import ChatMessage, ChatRole
 from Repositories.ChatRepository import ChatHistoryRepository
 from Repositories.TaskRepository import TaskRepository
-from Services.ChatService import ChatService
+from Services.ChatGeneratorService import ChatGeneratorService
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class GenerateTaskUseCase:
 
     def __init__(
         self,
-        chatService: ChatService,
+        chatService: ChatGeneratorService,
         chatHistoryRepository: ChatHistoryRepository,
         taskRepository: TaskRepository,
     ):
@@ -72,7 +72,7 @@ class GenerateTaskUseCase:
                 chatHistory=chatHistory
             )
             # タスクを生成する
-            result = self.chatService.generateResponse(chatServiceInput)
+            result = self.chatService.generate(chatServiceInput)
             logger.info(f"Result: {result}")
             if result.status == "error":
                 logger.error(f"Error {result.error}: {result.message}")

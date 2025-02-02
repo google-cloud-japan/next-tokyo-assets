@@ -17,7 +17,7 @@ from Infrastructure.Gateways.LlmConfigFactory import LlmConfigFactory
 from Repositories.ChatRepository import ChatHistoryRepository
 from Repositories.TaskRepository import TaskRepository
 from Services.Chat.ChatMessageGeneratorService import ChatMessageGeneratorService
-from Services.ChatService import ChatService
+from Services.ChatGeneratorService import ChatGeneratorService
 from UseCases.ChatQuestioningUseCase import ChatQuestioningUseCase
 from UseCases.GenerateTaskUseCase import GenerateTaskUseCase
 from UseCases.SaveTaskUseCase import SaveTaskUseCase
@@ -32,7 +32,7 @@ task_gateway = VertexAiGateway(config=LlmConfigFactory.create_task_config())
 qa_gateway = VertexAiGateway(config=LlmConfigFactory.create_qa_config())
 
 # ユースケースごとに注入
-taskChatService = ChatService(task_gateway)
+taskChatService = ChatGeneratorService(task_gateway)
 qaChatService = ChatMessageGeneratorService(qa_gateway)
 
 chatRepository = ChatHistoryRepository()

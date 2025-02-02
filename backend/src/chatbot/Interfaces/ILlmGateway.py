@@ -2,33 +2,34 @@ from dataclasses import dataclass
 from typing import List, Optional, Protocol
 
 from Domain.Models.Chat import ChatMessage
-from Domain.Models.TaskCollection import TaskCollection
 
 
 @dataclass(frozen=True)
-class TaskGenerationResult:
-    tasks: Optional[TaskCollection]
-    llmResponse: Optional[str]
+class GenerationResult:
+    data: Optional[dict]  # 任意のデータを格納
+    message: Optional[str]
     succeed: bool
     errorMessage: Optional[str]
 
     @classmethod
-    def success(cls, tasks: TaskCollection, llmResponse: str = "処理が正常に完了しました") -> "TaskGenerationResult":
-        if not tasks:
-            raise ValueError("成功時はタスクリスト必須")
+    def success(
+        cls, data: dict, message: str = "処理が正常に完了しました"
+    ) -> "GenerationResult":
+        if not data:
+            raise ValueError("成功時はデータ必須")
         return cls(
-            tasks=tasks,
-            llmResponse=llmResponse,
             succeed=True,
+            data=data,
+            message=message,
             errorMessage=None
         )
 
     @classmethod
-    def error(cls, errorMessage: str, llmResponse: str = None) -> "TaskGenerationResult":
+    def error(cls, errorMessage: str, llmResponse: str = None) -> "GenerationResult":
         return cls(
-            tasks=None,
-            llmResponse=llmResponse,
             succeed=False,
+            data=None,
+            message=None,
             errorMessage=errorMessage
         )
 
@@ -36,7 +37,7 @@ class TaskGenerationResult:
 class ILlmGateway(Protocol):
     """LLMとの通信を抽象化するインターフェース"""
 
-    def generateTask(self, prompt: str, context: List[ChatMessage]) -> TaskGenerationResult:
+    def generateTask(self, prompt: str, context: List[ChatMessage]) -> GenerationResult:
         """
         プロンプトとコンテキストからLLMを使用して応答を生成する
 
@@ -46,5 +47,17 @@ class ILlmGateway(Protocol):
 
         Returns:
             生成された応答（タスクリストまたは確認要求）
+        """
+        ...
+
+    def generateMessage(
+        self, prompt: str, context: List[ChatMessage]
+    ) -> GenerationResult:
+        """
+        プロンプトとコンテキストからLLMを使用して応答を生成する
+
+        Args:
+            prompt: ユーザーからの入力テキスト
+            context: 会話の文脈情報
         """
         ...
