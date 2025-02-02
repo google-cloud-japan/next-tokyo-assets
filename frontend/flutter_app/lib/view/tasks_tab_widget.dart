@@ -2,14 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../viewmodel/chat_viewmodel.dart';
+import 'package:hackathon_test1/viewmodel/chat_viewmodel.dart';
 
 /// 2つ目のタブ用のレイアウトサンプル
 class TaskTabWidget extends ConsumerWidget {
   const TaskTabWidget({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,10 +72,10 @@ class TaskTabWidget extends ConsumerWidget {
               title: Text(title),
               subtitle: Text(
                 '優先度: $priority\n'
-                    '必要な時間: $requiredTime 時間\n'
-                    '締め切り: ${deadlineDate?.toLocal() ?? '-'}\n'
-                    '作成日: ${createdDate?.toLocal() ?? '-'}\n'
-                    '$description',
+                '必要な時間: $requiredTime 時間\n'
+                '締め切り: ${deadlineDate?.toLocal() ?? '-'}\n'
+                '作成日: ${createdDate?.toLocal() ?? '-'}\n'
+                '$description',
               ),
               // それぞれのタスクをタップしたときの処理など
               onTap: () {

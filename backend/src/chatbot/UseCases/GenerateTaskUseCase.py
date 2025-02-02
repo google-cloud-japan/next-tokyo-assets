@@ -92,12 +92,6 @@ class GenerateTaskUseCase:
             chatMessages = []
             chatMessages.append(
                 ChatMessage(
-                    role=ChatRole.USER,
-                    content=input.prompt,
-                )
-            )
-            chatMessages.append(
-                ChatMessage(
                     role=ChatRole.ASSISTANT,
                     content=result.message,
                     tasks=result.tasks,
