@@ -41,7 +41,7 @@ db = firebase_client.db
 taskRepository = TaskRepository()
 
 
-@router.post("/api/chat/send", response_model=ChatMessageRequest)
+@router.post("/api/chat/send", response_model=ChatMessageResponse)
 async def send_chat(request: ChatMessageRequest) -> ChatMessageResponse:
     """
     ユーザが入力したメッセージ対してLLMが返信する
@@ -53,8 +53,11 @@ async def send_chat(request: ChatMessageRequest) -> ChatMessageResponse:
         goalId=request.goalId,
     )
     useCaseOutput = useCase.generate(useCaseInput)
+    logger.info(f"useCaseOutput: {useCaseOutput}")
     return ChatMessageResponse(
-        success=True, message=useCaseOutput.message, error=useCaseOutput.errorMessage
+        success=True,
+        message=useCaseOutput.message,
+        error=useCaseOutput.errorMessage
     )
 
 

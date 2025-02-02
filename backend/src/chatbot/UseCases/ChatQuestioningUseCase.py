@@ -76,8 +76,7 @@ class ChatQuestioningUseCase:
             chatMessages = [
                 ChatMessage(
                     role=ChatRole.ASSISTANT,
-                    content=result.message,
-                    tasks=result.tasks,
+                    content=result.message
                 )
             ]
             self.chatHistoryRepository.add(chatMessages, input.userId, input.goalId)

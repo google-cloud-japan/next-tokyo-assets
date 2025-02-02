@@ -67,7 +67,6 @@ class VertexAiGateway(ILlmGateway):
         """
         try:
             # ドメインモデルのデータをLLMが求めるデータに変換する
-
             contents = self._convertChatMessagesToContents(context, prompt)
             # LLMにデータを渡して応答を生成する
             logger.info("Calling Vertex AI GenerativeModel...")
@@ -155,3 +154,17 @@ class VertexAiGateway(ILlmGateway):
             )
             taskCollection.add(task)
         return taskCollection
+
+    def generateMessage(self, prompt: str, context: List[ChatMessage]) -> GenerationResult:
+        """
+        プロンプトとコンテキストからVertex AIを使用してメッセージを生成する
+        """
+            # ドメインモデルのデータをLLMが求めるデータに変換する
+        contents = self._convertChatMessagesToContents(context, prompt)
+        # LLMにデータを渡して応答を生成する
+        logger.info("Calling Vertex AI GenerativeModel...")
+        response = self.model.generate_content(contents=contents)
+
+        return GenerationResult.success(message=response.text)
+
+

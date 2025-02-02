@@ -13,10 +13,11 @@ class GenerationResult:
 
     @classmethod
     def success(
-        cls, data: dict, message: str = "処理が正常に完了しました"
+            cls,
+            data: dict = None,
+            message: str = "処理が正常に完了しました"
     ) -> "GenerationResult":
-        if not data:
-            raise ValueError("成功時はデータ必須")
+
         return cls(
             succeed=True,
             data=data,

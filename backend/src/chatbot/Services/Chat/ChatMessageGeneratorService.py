@@ -34,11 +34,12 @@ class ChatMessageGeneratorService:
     def generate(self, input: GenerateResponseInput) -> GenerateResponseOutput:
         try:
             # LLMを使用して応答を生成
-            output = self.llmGateway.generateTask(input.prompt, input.chatHistory or [])
+            output = self.llmGateway.generateMessage(input.prompt, input.chatHistory or [])
+            logger.info(f"output: {output}")
             return self.GenerateResponseOutput(
                 status="success",
-                succeed=output.succeed,
-                message=output.llmResponse
+                succeed=True,
+                message=output.message
             )
 
         except Exception as err:
