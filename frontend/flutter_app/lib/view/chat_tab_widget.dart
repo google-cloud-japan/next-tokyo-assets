@@ -1,15 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hackathon_test1/viewmodel/chat_viewmodel.dart';
 
 import 'first_input_widget.dart';
 
 class ChatTabWidget extends ConsumerWidget {
   const ChatTabWidget({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,7 +45,7 @@ class ChatTabWidget extends ConsumerWidget {
                 return FirstInputWidget(
                   chatViewModel: chatViewModel,
                   userId: userId,
-                  goalId: selectedGoalId!,
+                  goalId: selectedGoalId,
                 );
               }
 
@@ -93,7 +93,7 @@ class ChatTabWidget extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment:
-        isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           // バブル部分
           Container(
@@ -105,7 +105,7 @@ class ChatTabWidget extends ConsumerWidget {
             ),
             child: Column(
               crossAxisAlignment:
-              isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                  isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Text(
                   content,
@@ -128,7 +128,7 @@ class ChatTabWidget extends ConsumerWidget {
   // 送信時刻のフォーマット例
   String _formatTime(DateTime dateTime) {
     // 好きな書式に変えてください (例: 2025/01/31 18:00)
-    return '${dateTime.year}/${dateTime.month.toString().padLeft(2,'0')}/${dateTime.day.toString().padLeft(2,'0')} '
-        '${dateTime.hour.toString().padLeft(2,'0')}:${dateTime.minute.toString().padLeft(2,'0')}';
+    return '${dateTime.year}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.day.toString().padLeft(2, '0')} '
+        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }

@@ -79,7 +79,6 @@ class ChatPage extends ConsumerWidget {
                   ),
                 ),
                 // 目標一覧を表示する部分
-                // ここはあなたのもともとのコードを利用
                 StreamBuilder<QuerySnapshot>(
                   stream: chatViewModel.getGoalStream(userId),
                   builder: (context, snapshot) {
@@ -113,11 +112,7 @@ class ChatPage extends ConsumerWidget {
         body: const TabBarView(
           children: [
             // 1枚目 (チャット)
-            ChatTabWidget(
-                // userId: userId,
-                // chatViewModel: chatViewModel,
-                // goalViewModel: goalViewModel,
-                ),
+            ChatTabWidget(),
             // 2枚目 (タスクなど新しいレイアウト)
             TaskTabWidget(),
           ],
@@ -146,7 +141,7 @@ class _ChatTabContent extends StatelessWidget {
 
     return Column(
       children: [
-        // メッセージ一覧 (既存コードを流用)
+        // メッセージ一覧
         Expanded(
           child: selectedGoalId != null
               ? StreamBuilder<QuerySnapshot>(
