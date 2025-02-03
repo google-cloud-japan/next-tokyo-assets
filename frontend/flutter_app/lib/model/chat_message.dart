@@ -10,7 +10,7 @@ class ChatMessage with _$ChatMessage {
   const factory ChatMessage({
     required String content,
     required String role,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
+    DateTime? createdAt,
     @Default(false) bool loading,
     List<String>? ragFileIds,
     @Default('success') String status,
@@ -22,7 +22,7 @@ class ChatMessage with _$ChatMessage {
   factory ChatMessage.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return ChatMessage.fromJson(data).copyWith(
-      createdAt: (data['created_at'] as Timestamp?)?.toDate(),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
     );
   }
 }

@@ -39,6 +39,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_riverpod: ^2.6.1
   freezed_annotation: ^2.4.4
+  google_sign_in_ios: ^5.7.8
   google_sign_in: ^6.2.2
 
 dev_dependencies:
