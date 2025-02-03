@@ -58,7 +58,7 @@ class ChatTabWidget extends ConsumerWidget {
                   final content = data['content'] as String? ?? '';
                   final role = data['role'] as String? ?? 'user';
                   // Timestamp → DateTime への変換
-                  final createdAt = data['created_at'];
+                  final createdAt = data['createdAt'];
                   DateTime? createdTime;
                   if (createdAt is Timestamp) {
                     createdTime = createdAt.toDate();

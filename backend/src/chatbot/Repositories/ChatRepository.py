@@ -27,7 +27,7 @@ class ChatHistoryRepository:
                 chatMessageData = {
                     "role": chatMessage.role,
                     "content": chatMessage.content,
-                    "created_at": chatMessage.createdAt.isoformat(),
+                    "createdAt": chatMessage.createdAt.isoformat(),
                     "status": chatMessage.status,
                 }
                 # タスクがある場合はタスクを追加
@@ -71,7 +71,7 @@ class ChatHistoryRepository:
                     message_data = {
                         "role": ChatRole(data.get("role")),
                         "content": data.get("content"),
-                        "createdAt": datetime.fromisoformat(data.get("created_at")),
+                        "createdAt": datetime.fromisoformat(data.get("createdAt")),
                         "status": ChatStatus(data.get("status")),
                     }
                     # タスクがある場合はタスクを追加
