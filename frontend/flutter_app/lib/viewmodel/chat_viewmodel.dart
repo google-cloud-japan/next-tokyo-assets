@@ -53,7 +53,7 @@ class ChatViewModel extends ChangeNotifier {
         .collection('goals')
         .doc(goalId)
         .collection('chat')
-        .orderBy('created_at', descending: false)
+        .orderBy('createdAt', descending: false)
         .snapshots();
   }
 
@@ -79,8 +79,8 @@ class ChatViewModel extends ChangeNotifier {
         .collection('goals')
         .doc(goalId)
         .collection('tasks')
-    // 並び順を指定したい場合（例：priority 昇順）
-    // .orderBy('priority', descending: false)
+        // 並び順を指定したい場合（例：priority 昇順）
+        // .orderBy('priority', descending: false)
         .snapshots();
   }
 

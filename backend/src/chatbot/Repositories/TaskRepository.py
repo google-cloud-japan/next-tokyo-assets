@@ -51,7 +51,7 @@ class TaskRepository:
             batch = self._db.batch()
             for task_dict in tasks.toDict():
                 task_ref = tasks_ref.document()
-                batch.set(task_ref, {**task_dict, 'created_at': datetime.now()})
+                batch.set(task_ref, {**task_dict, 'createdAt': datetime.now()})
 
             # バッチ書き込みを実行 (バッチ内の全ての操作が成功するか、全てロールバックされます)
             batch.commit()
