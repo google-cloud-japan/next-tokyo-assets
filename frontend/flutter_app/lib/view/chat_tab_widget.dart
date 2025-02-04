@@ -51,6 +51,7 @@ class ChatTabWidget extends ConsumerWidget {
 
               final docs = snapshot.data!.docs;
               return ListView.builder(
+                // TODO : Column で囲ってチャット入力欄を表示する
                 padding: const EdgeInsets.all(8),
                 itemCount: docs.length,
                 itemBuilder: (context, index) {
