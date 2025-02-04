@@ -106,12 +106,12 @@ class ChatPage extends ConsumerWidget {
             ),
           ),
         ),
-        body: const TabBarView(
+        body: TabBarView(
           children: [
             // 1枚目 (チャット)
             ChatTabWidget(),
             // 2枚目 (タスクなど新しいレイアウト)
-            TaskTabWidget(),
+            const TaskTabWidget(),
           ],
         ),
       ),
