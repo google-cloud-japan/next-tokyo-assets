@@ -32,11 +32,12 @@ class ChatViewModel extends ChangeNotifier {
           .collection('notebooks')
           .doc(notebookId)
           .collection('chat')
-          .add(ChatMessage(
-            content: text,
-            role: "user",
-            createdAt: DateTime.now(),
-          ).toJson());
+          .add({
+        'content': text,
+        'role': 'user',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
       textController.clear();
       SnackbarHelper.show(context, 'メッセージが送信されました');
     } catch (e) {
@@ -125,11 +126,11 @@ class ChatViewModel extends ChangeNotifier {
           .collection('goals')
           .doc(goalId)
           .collection('chat')
-          .add(ChatMessage(
-            content: message,
-            role: "user",
-            createdAt: DateTime.now(),
-          ).toJson());
+          .add({
+        'content': message,
+        'role': 'user',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       SnackbarHelper.show(context, '期日・作業時間・メッセージを保存しました');
     } catch (e) {
