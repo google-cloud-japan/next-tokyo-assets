@@ -7,27 +7,32 @@ from .tasks_api_client import get_tasks_service, create_task_list, create_todo_i
 
 class TaskSyncService:
 
-    def __init__(self):
+    def __init__(self, access_token: str, refresh_token: str, client_id: str, client_secret: str):
         # 必要に応じて初期化
-        self.tasks_service = get_tasks_service()
+        self.tasks_service = get_tasks_service(
+                    access_token=access_token,
+                    refresh_token=refresh_token,
+                    client_id=client_id,
+                    client_secret=client_secret
+                )
         self.task_title = "AI hackathon Tasks"
         self.start_dt = date.today()
-        self.end_dt = self.start_date + timedelta(days=7)
+        self.end_dt = self.start_dt + timedelta(days=7)
 
-    def sync_tasks(self, tasks: list[dict]):
+    def sync_tasks(self, tasks: list[dict], access_token, refresh_token, client_id, client_secret):
         """
         受け取ったタスクを、Googleカレンダーの空き状況などを考慮して
         Google Tasks(API)に同期する一連の処理をまとめる。
         """
         # 1. カレンダーから日毎スロット取得
-        day_slots_map = get_day_slot_map(self.start_dt, self.end_dt)
+        day_slots_map = get_day_slot_map(self.start_dt, self.end_dt,access_token, refresh_token, client_id, client_secret)
 
         # 2. 割り当て計算
         updated_tasks, allocated_slots = allocate_tasks_day_by_day(
             tasks=tasks,
             day_slots_map=day_slots_map,
-            start_date=self.start_dt.date(),
-            end_date=self.end_dt.date()
+            start_date=self.start_dt,
+            end_date=self.end_dt
         )
 
         # 3. Google Tasks APIでタスクリスト作成

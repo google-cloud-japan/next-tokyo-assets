@@ -1,6 +1,6 @@
 import os
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import dateutil.parser  # pip install python-dateutil
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -9,31 +9,19 @@ from googleapiclient.discovery import build
 # カレンダーAPIのスコープ: 読み取り専用にする場合
 CALENDAR_SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 
-def get_calendar_service():
+def get_calendar_service(access_token, refresh_token, client_id, client_secret):
     """
     GoogleカレンダーAPIのServiceインスタンスを返す。
     ローカルPCなどで実行し、ブラウザ認証することを想定。
     """
-    creds = None
-    token_path = "credentials/token_calendar.json"  # 認証結果(トークン)を保存するファイル
-
-    if os.path.exists(token_path):
-        creds = Credentials.from_authorized_user_file(token_path, CALENDAR_SCOPES)
-    if not creds or not creds.valid:
-        # トークンが無い or 期限切れの場合、リフレッシュあるいは新たに認証フローを開始
-        # if creds and creds.expired and creds.refresh_token:
-        #     creds.refresh(Request())
-        # else:
-        flow = InstalledAppFlow.from_client_secrets_file(
-            "credentials/credentials_desktop.json",  # ダウンロードしたOAuthクレデンシャルファイル
-            CALENDAR_SCOPES
-        )
-        # GUI環境がない場合は flow.run_console() が使いやすい
-        creds = flow.run_local_server(port=0)  
-        # 認証した資格情報をファイルに保存 → 次回から再利用
-        with open(token_path, "w") as token:
-            token.write(creds.to_json())
-
+    creds = Credentials(
+        token=access_token,
+        # refresh_token=None,
+        # token_uri="https://oauth2.googleapis.com/token",
+        # client_id=client_id,
+        # client_secret=client_secret,
+        scopes=["https://www.googleapis.com/auth/calendar"]
+    )
     service = build("calendar", "v3", credentials=creds)
     return service
 
@@ -47,11 +35,17 @@ def get_daily_booked_hours(service, calendar_id, start_date, end_date):
     :param end_date: 取得終了日時 (datetime)
     :return: { date: float(ブッキング時間) } の辞書 (dateはdatetime.date)
     """
+    
+    dt_start = datetime.combine(start_date, time.min)  # 00:00:00
+    dt_end   = datetime.combine(end_date,   time.min)  # 同様に 00:00:00
+    timeMin=dt_start.isoformat() + "Z"  # ISO8601, UTC形式
+    timeMax=dt_end.isoformat() + "Z"    # end_date自体を含めたければ+1日するなど
+
     # イベント取得
     events_result = service.events().list(
         calendarId=calendar_id,
-        timeMin=start_date.isoformat() + "Z",  # ISO8601, UTC形式
-        timeMax=end_date.isoformat() + "Z",    # end_date自体を含めたければ+1日するなど
+        timeMin=timeMin,
+        timeMax=timeMax,
         singleEvents=True,
         orderBy="startTime"
     ).execute()
@@ -64,7 +58,7 @@ def get_daily_booked_hours(service, calendar_id, start_date, end_date):
     # 期間中の日を0で初期化 (あくまで「枠」を作る)
     temp_day = start_date
     while temp_day < end_date:
-        day_booked[temp_day.date()] = 0.0
+        day_booked[temp_day] = 0.0
         temp_day += timedelta(days=1)
 
     for event in events:
@@ -117,8 +111,8 @@ def decide_num_tasks(booked_hours):
     else:
         return 2
     
-def get_day_slot_map(start_date, end_date):
-    cal_service = get_calendar_service()
+def get_day_slot_map(start_date, end_date, access_token, refresh_token, client_id, client_secret):
+    cal_service = get_calendar_service(access_token, refresh_token, client_id, client_secret)
     calendar_id = "primary"
     day_booked_map = get_daily_booked_hours(cal_service, calendar_id, start_date, end_date)
 
@@ -129,9 +123,9 @@ def get_day_slot_map(start_date, end_date):
 
     return allocation_result
 
-def main():
+def main(access_token, refresh_token, client_id, client_secret):
     # 1) カレンダーAPIサービスの初期化
-    cal_service = get_calendar_service()
+    cal_service = get_calendar_service(access_token, refresh_token, client_id, client_secret)
 
     # 2) 取得したい期間を設定
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)

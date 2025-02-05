@@ -57,6 +57,7 @@ class AuthViewModel extends ChangeNotifier {
     scopes: [
       'email',
       'profile',
+      'https://www.googleapis.com/auth/tasks',
     ],
   );
 
@@ -129,6 +130,7 @@ class AuthViewModel extends ChangeNotifier {
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
         );
+        print("AccessToken : ${googleAuth.accessToken}");
         // ここで FirebaseAuth にサインイン
         await FirebaseAuth.instance.signInWithCredential(credential);
 

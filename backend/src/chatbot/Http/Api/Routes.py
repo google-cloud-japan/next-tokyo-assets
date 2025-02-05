@@ -1,8 +1,8 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Header
 from cloudevents.http import from_http
-
+from typing import Optional
 from Http.Api.Schemas import (
     GoalGenerateRequest,
     GoalGenerateResponse,
@@ -16,6 +16,10 @@ from Repositories.TaskRepository import TaskRepository
 from Services.ChatService import ChatService
 from UseCases.GenerateTaskUseCase import GenerateTaskUseCase
 from UseCases.SaveTaskUseCase import SaveTaskUseCase
+
+from typing import List
+from Services.TaskSyncService.task_sync_service import TaskSyncService
+
 
 logger = logging.getLogger(__name__)
 
@@ -179,6 +183,36 @@ def _handle_goal_generation(
         error=goalUseCaseOutput.errorMessage,
     )
 
+@router.post("/sync-tasks")
+def sync_tasks_endpoint(tasks: List[dict],   
+                        authorization: Optional[str] = Header(None)
+):
+    """
+    受け取ったタスクリストを TaskSyncService に渡して
+    Google Tasks と連携処理を行うエンドポイント。
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        return {"error": "No or invalid access token"}
+
+    access_token = authorization.replace("Bearer ", "")
+
+    # ※ 実際には必要に応じて client_id, client_secret を取得
+    client_id = "tekito"
+    client_secret = "tekito"
+
+    # 今回は refresh_token なし（None のまま）
+    refresh_token = None
+
+    service = TaskSyncService(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        client_id=client_id,
+        client_secret=client_secret
+    )
+    # Pydanticモデルをdictに変換し、リスト化してsync_tasksに渡す
+    # tasks_dict_list = [task.dict() for task in tasks]
+    result = service.sync_tasks(tasks, access_token, refresh_token, client_id, client_secret)
+    return result
 
 @router.post("/api/task/save", response_model=TaskSaveResponse)
 async def save_task(request: TaskSaveRequest) -> TaskSaveResponse:
