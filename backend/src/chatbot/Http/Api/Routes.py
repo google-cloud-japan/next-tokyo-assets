@@ -8,12 +8,17 @@ from Http.Api.Schemas import (
     GoalGenerateResponse,
     TaskSaveRequest,
     TaskSaveResponse,
+    ChatMessageRequest,
+    ChatMessageResponse,
 )
 from Infrastructure.Firebase.FirebaseClient import FirebaseClient
 from Infrastructure.Gateways.VertexAiGateway import VertexAiGateway
+from Infrastructure.Gateways.LlmConfigFactory import LlmConfigFactory
 from Repositories.ChatRepository import ChatHistoryRepository
 from Repositories.TaskRepository import TaskRepository
-from Services.ChatService import ChatService
+from Services.Chat.ChatMessageGeneratorService import ChatMessageGeneratorService
+from Services.ChatGeneratorService import ChatGeneratorService
+from UseCases.ChatQuestioningUseCase import ChatQuestioningUseCase
 from UseCases.GenerateTaskUseCase import GenerateTaskUseCase
 from UseCases.SaveTaskUseCase import SaveTaskUseCase
 
@@ -22,12 +27,38 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # 依存関係の初期化
-llmGateway = VertexAiGateway()
+# 設定を渡してゲートウェイを初期化
+task_gateway = VertexAiGateway(config=LlmConfigFactory.create_task_config())
+qa_gateway = VertexAiGateway(config=LlmConfigFactory.create_qa_config())
+
+# ユースケースごとに注入
+taskChatService = ChatGeneratorService(task_gateway)
+qaChatService = ChatMessageGeneratorService(qa_gateway)
+
 chatRepository = ChatHistoryRepository()
-chatService = ChatService(llmGateway)
 firebase_client = FirebaseClient.get_instance()
 db = firebase_client.db
 taskRepository = TaskRepository()
+
+
+@router.post("/api/chat/send", response_model=ChatMessageResponse)
+async def send_chat(request: ChatMessageRequest) -> ChatMessageResponse:
+    """
+    ユーザが入力したメッセージ対してLLMが返信する
+    """
+    useCase = ChatQuestioningUseCase(qaChatService, chatRepository)
+    useCaseInput = useCase.Input(
+        prompt=request.prompt,
+        userId=request.userId,
+        goalId=request.goalId,
+    )
+    useCaseOutput = useCase.generate(useCaseInput)
+    logger.info(f"useCaseOutput: {useCaseOutput}")
+    return ChatMessageResponse(
+        success=True,
+        message=useCaseOutput.message,
+        error=useCaseOutput.errorMessage
+    )
 
 
 @router.post("/api/goal/generate", response_model=GoalGenerateResponse)
@@ -149,7 +180,7 @@ def _handle_goal_generation(
     この共通関数を呼び出す形にして重複を減らす。
     """
 
-    useCase = GenerateTaskUseCase(chatService, chatRepository, taskRepository)
+    useCase = GenerateTaskUseCase(taskChatService, chatRepository, taskRepository)
     goalUseCaseInput = useCase.Input(
         prompt=prompt,
         userId=userId,

@@ -9,7 +9,7 @@ from Interfaces.ILlmGateway import ILlmGateway
 logger = logging.getLogger(__name__)
 
 
-class ChatService:
+class ChatGeneratorService:
     """チャットボットのコアロジックを担当するクラス"""
 
     @dataclass
@@ -39,15 +39,16 @@ class ChatService:
         self.llmGateway = llmGateway
         logger.info("Initialized ChatService")
 
-    def generateResponse(self, input: GenerateResponseInput) -> GenerateResponseOutput:
+    def generate(self, input: GenerateResponseInput) -> GenerateResponseOutput:
         try:
             # LLMを使用して応答を生成
             output = self.llmGateway.generateTask(input.prompt, input.chatHistory or [])
+            tasks = output.data.get("tasks") if output.data else None
             return self.GenerateResponseOutput(
                 status="success",
                 succeed=output.succeed,
-                tasks=output.tasks,
-                message=output.llmResponse
+                tasks=tasks,
+                message=output.message,
             )
 
         except Exception as err:
@@ -55,5 +56,5 @@ class ChatService:
             return self.GenerateResponseOutput(
                 status="error",
                 succeed=False,
-                error="申し訳ございません。応答の生成に失敗しました。"
+                error="申し訳ございません。応答の生成に失敗しました。",
             )

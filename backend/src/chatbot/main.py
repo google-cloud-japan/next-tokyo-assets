@@ -11,7 +11,6 @@ project_root = str(Path(__file__).parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-from Config.LlmConfig import PROJECT_ID, VERTEX_AI_LOCATION
 from Config.LogConfig import setup_logging
 from Http.Api.Routes import router
 

@@ -42,3 +42,17 @@ class TaskSaveResponse(BaseModel):
     success: bool = Field(..., description="処理の成否")
     message: str = Field(..., description="メッセージ 成功時は'タスクを保存しました'、失敗時は'タスクの保存に失敗しました")
     error: Optional[str] = Field(None, description="エラーが発生した場合のメッセージ")
+
+class ChatMessageRequest(BaseModel):
+    """タスク保存リクエストのスキーマ定義"""
+
+    prompt: str = Field(..., description="ユーザーが入力したメッセージ")
+    userId: str = Field(..., description="ユーザーID Firebase Auth ID")
+    goalId: str = Field(..., description="目標ID")
+
+class ChatMessageResponse(BaseModel):
+    """タスク保存レスポンスのスキーマ定義"""
+
+    success: bool = Field(..., description="処理の成否")
+    message: str = Field(..., description="LLMからのメッセージ 画面に表示するメッセージ")
+    error: Optional[str] = Field(None, description="エラーが発生した場合のメッセージ")
