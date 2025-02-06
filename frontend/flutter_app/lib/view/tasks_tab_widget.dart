@@ -120,11 +120,11 @@ class TaskTabWidget extends ConsumerWidget {
                       child: ElevatedButton(
                         onPressed: () async {
                           // goal ドキュメントに taskFixed = true を書き込む
-                          // await chatViewModel.updateTaskFixed(
-                          //   userId: userId,
-                          //   goalId: selectedGoalId,
-                          //   taskFixed: true,
-                          // );
+                          await chatViewModel.updateTaskFixed(
+                            userId: userId,
+                            goalId: selectedGoalId,
+                            taskFixed: true,
+                          );
                           // 書き込み完了後、自動的に goal ドキュメントが更新されるため
                           // ここでのゴールスナップショットが再ビルドされ、isTaskFixed が true になってボタンが消える
                           String? token = authViewModel.accessToken;
