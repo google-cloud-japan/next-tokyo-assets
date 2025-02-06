@@ -136,4 +136,66 @@ class ChatViewModel extends ChangeNotifier {
       SnackbarHelper.show(context, 'Firestore 書き込みエラー: $e');
     }
   }
+
+  Stream<DocumentSnapshot> getGoalDocStream(String userId, String goalId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('goals')
+        .doc(goalId)
+        .snapshots();
+  }
+
+  Future<void> updateTaskFixed({
+    required String userId,
+    required String goalId,
+    required bool taskFixed,
+  }) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('goals')
+          .doc(goalId)
+          .update({
+        'taskFixed': taskFixed,
+      });
+    } catch (e) {
+      debugPrint('Firestore 書き込みエラー: $e');
+    }
+  }
+
+  Future<bool?> getTaskFixed({
+    required String userId,
+    required String goalId,
+  }) async {
+    try {
+      final docSnapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('goals')
+          .doc(goalId)
+          .get();
+
+      if (!docSnapshot.exists) {
+        // ドキュメント自体が存在しない場合は null を返す
+        return null;
+      }
+
+      final data = docSnapshot.data();
+      if (data == null) {
+        // データがない場合
+        return null;
+      }
+
+      // taskFixed フィールドを bool? として取り出す
+      final taskFixed = data['taskFixed'] as bool?;
+      return taskFixed; // (true, false, あるいは null)
+    } catch (e) {
+      debugPrint('Firestore 読み込みエラー: $e');
+      // 呼び出し元で扱いやすいように null を返す
+      return null;
+    }
+  }
+
 }
