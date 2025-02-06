@@ -21,7 +21,7 @@ def list_task_lists(service):
     tasklists = results.get('items', [])
     return tasklists
 
-def get_tasks_service(access_token, refresh_token, client_id, client_secret):
+def get_tasks_service(access_token):
     """
     Google Tasks APIのServiceインスタンスを返す。
     認証情報が保存されていれば再利用し、なければ新たに認証フローを実行する。

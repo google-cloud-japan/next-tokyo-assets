@@ -9,7 +9,7 @@ from googleapiclient.discovery import build
 # カレンダーAPIのスコープ: 読み取り専用にする場合
 CALENDAR_SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 
-def get_calendar_service(access_token, refresh_token, client_id, client_secret):
+def get_calendar_service(access_token):
     """
     GoogleカレンダーAPIのServiceインスタンスを返す。
     ローカルPCなどで実行し、ブラウザ認証することを想定。
@@ -111,8 +111,8 @@ def decide_num_tasks(booked_hours):
     else:
         return 2
     
-def get_day_slot_map(start_date, end_date, access_token, refresh_token, client_id, client_secret):
-    cal_service = get_calendar_service(access_token, refresh_token, client_id, client_secret)
+def get_day_slot_map(start_date, end_date, access_token):
+    cal_service = get_calendar_service(access_token)
     calendar_id = "primary"
     day_booked_map = get_daily_booked_hours(cal_service, calendar_id, start_date, end_date)
 
@@ -123,9 +123,9 @@ def get_day_slot_map(start_date, end_date, access_token, refresh_token, client_i
 
     return allocation_result
 
-def main(access_token, refresh_token, client_id, client_secret):
+def main(access_token):
     # 1) カレンダーAPIサービスの初期化
-    cal_service = get_calendar_service(access_token, refresh_token, client_id, client_secret)
+    cal_service = get_calendar_service(access_token)
 
     # 2) 取得したい期間を設定
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)

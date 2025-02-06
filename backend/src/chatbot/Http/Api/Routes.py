@@ -196,22 +196,12 @@ def sync_tasks_endpoint(tasks: List[dict],
 
     access_token = authorization.replace("Bearer ", "")
 
-    # ※ 実際には必要に応じて client_id, client_secret を取得
-    client_id = "tekito"
-    client_secret = "tekito"
-
-    # 今回は refresh_token なし（None のまま）
-    refresh_token = None
-
     service = TaskSyncService(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        client_id=client_id,
-        client_secret=client_secret
+        access_token=access_token
     )
     # Pydanticモデルをdictに変換し、リスト化してsync_tasksに渡す
     # tasks_dict_list = [task.dict() for task in tasks]
-    result = service.sync_tasks(tasks, access_token, refresh_token, client_id, client_secret)
+    result = service.sync_tasks(tasks, access_token)
     return result
 
 @router.post("/api/task/save", response_model=TaskSaveResponse)

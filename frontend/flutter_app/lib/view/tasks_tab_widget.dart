@@ -2,7 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hackathon_test1/repository/task_repository.dart';
+import 'package:hackathon_test1/viewmodel/auth_viewmodel.dart';
 import 'package:hackathon_test1/viewmodel/chat_viewmodel.dart';
+import 'dart:convert';
 
 /// 2つ目のタブ用のサンプルウィジェット
 class TaskTabWidget extends ConsumerWidget {
@@ -17,6 +20,7 @@ class TaskTabWidget extends ConsumerWidget {
     }
 
     final chatViewModel = ref.watch(chatViewModelProvider);
+    final authViewModel = ref.watch(authViewModelProvider);
     final userId = user.uid;
     final selectedGoalId = chatViewModel.selectedGoalId;
 
@@ -116,13 +120,19 @@ class TaskTabWidget extends ConsumerWidget {
                       child: ElevatedButton(
                         onPressed: () async {
                           // goal ドキュメントに taskFixed = true を書き込む
-                          await chatViewModel.updateTaskFixed(
-                            userId: userId,
-                            goalId: selectedGoalId,
-                            taskFixed: true,
-                          );
+                          // await chatViewModel.updateTaskFixed(
+                          //   userId: userId,
+                          //   goalId: selectedGoalId,
+                          //   taskFixed: true,
+                          // );
                           // 書き込み完了後、自動的に goal ドキュメントが更新されるため
                           // ここでのゴールスナップショットが再ビルドされ、isTaskFixed が true になってボタンが消える
+                          String? token = authViewModel.accessToken;
+                          await TaskRepository.fetchTasksAndPost(
+                            authToken: token!,
+                            userId: userId,
+                            goalId: selectedGoalId,
+                          );
                         },
                         child: const Text('タスクを確定する'),
                       ),
