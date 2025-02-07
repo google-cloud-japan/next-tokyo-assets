@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hackathon_test1/model/chat_message.dart';
 import 'package:hackathon_test1/view/common/snackbar_helper.dart';
 
 final chatViewModelProvider = ChangeNotifierProvider((ref) => ChatViewModel());
@@ -32,11 +31,12 @@ class ChatViewModel extends ChangeNotifier {
           .collection('notebooks')
           .doc(notebookId)
           .collection('chat')
-          .add(ChatMessage(
-            content: text,
-            role: "user",
-            createdAt: DateTime.now(),
-          ).toJson());
+          .add({
+        'content': text,
+        'role': 'user',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
       textController.clear();
       SnackbarHelper.show(context, 'メッセージが送信されました');
     } catch (e) {
@@ -125,11 +125,11 @@ class ChatViewModel extends ChangeNotifier {
           .collection('goals')
           .doc(goalId)
           .collection('chat')
-          .add(ChatMessage(
-            content: message,
-            role: "user",
-            createdAt: DateTime.now(),
-          ).toJson());
+          .add({
+        'content': message,
+        'role': 'user',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       SnackbarHelper.show(context, '期日・作業時間・メッセージを保存しました');
     } catch (e) {
