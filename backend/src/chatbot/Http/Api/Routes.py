@@ -1,8 +1,8 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Header
 from cloudevents.http import from_http
-
+from typing import Optional
 from Http.Api.Schemas import (
     GoalGenerateRequest,
     GoalGenerateResponse,
@@ -22,6 +22,10 @@ from UseCases.ChatQuestioningUseCase import ChatQuestioningUseCase
 from UseCases.GenerateTaskUseCase import GenerateTaskUseCase
 from UseCases.SaveTaskUseCase import SaveTaskUseCase
 from google.cloud import firestore
+
+from typing import List
+from Services.TaskSyncService.task_sync_service import TaskSyncService
+
 
 logger = logging.getLogger(__name__)
 
@@ -294,6 +298,26 @@ def _handle_goal_generation(
         error=goalUseCaseOutput.errorMessage,
     )
 
+@router.post("/sync-tasks")
+def sync_tasks_endpoint(tasks: List[dict],   
+                        authorization: Optional[str] = Header(None)
+):
+    """
+    受け取ったタスクリストを TaskSyncService に渡して
+    Google Tasks と連携処理を行うエンドポイント。
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        return {"error": "No or invalid access token"}
+
+    access_token = authorization.replace("Bearer ", "")
+
+    service = TaskSyncService(
+        access_token=access_token
+    )
+    # Pydanticモデルをdictに変換し、リスト化してsync_tasksに渡す
+    # tasks_dict_list = [task.dict() for task in tasks]
+    result = service.sync_tasks(tasks, access_token)
+    return result
 
 @router.post("/api/task/save", response_model=TaskSaveResponse)
 async def save_task(request: TaskSaveRequest) -> TaskSaveResponse:
@@ -318,9 +342,15 @@ async def save_task(request: TaskSaveRequest) -> TaskSaveResponse:
         error=saveTaskUseCaseOutput.errorMessage,
     )
 
+@router.post("/api/chat/eventarc")
+async def handle_eventarc(request: Request):
+    data = await request.json()
+    print("Received Eventarc data:", data)
+    return {"status": "ok"}
 
 @router.get("/api/health")
 async def health_check() -> dict:
     """ヘルスチェックエンドポイント"""
     logger.debug("Health check requested")
     return {"status": "healthy"}
+

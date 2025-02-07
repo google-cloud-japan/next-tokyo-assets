@@ -1,9 +1,9 @@
 from datetime import date, datetime, timedelta, time
 import math
 
-import day_slot_calculator
-import urgency_calculator
-import tasks_api_client
+from . import day_slot_calculator
+from . import urgency_calculator
+from . import tasks_api_client
 
 TASK_TITLE = "AI hackathon Tasks"
 
@@ -158,11 +158,11 @@ def allocate_tasks_day_by_day(
     return tasks, allocated_slots
 
 
-def main():
+def main(access_token, refresh_token, client_id, client_secret):
     # スロット計算プログラムから「日毎の稼働可能なスロット数」を取得
     start_dt = datetime(2025, 1, 26)
     end_dt = datetime(2025, 1, 28)
-    day_slots_map = day_slot_calculator.get_day_slot_map(start_dt, end_dt)
+    day_slots_map = day_slot_calculator.get_day_slot_map(start_dt, end_dt, access_token, refresh_token, client_id, client_secret)
     
     # タスク一覧(JSON)をロード & 緊急度を最初に計算
     tasks = urgency_calculator.load_tasks_from_json("tests/input_tasks.json")

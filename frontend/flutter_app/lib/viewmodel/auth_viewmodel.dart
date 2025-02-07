@@ -11,6 +11,10 @@ final authViewModelProvider = ChangeNotifierProvider((ref) => AuthViewModel());
 
 class AuthViewModel extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  /// ここでGoogleのアクセストークンを保持する
+  String? _accessToken;
+  /// アクセストークンを外部から参照できるようGetterを用意
+  String? get accessToken => _accessToken;
 
   // 既存、メールアドレスとパスワードのサインアップ
   Future<void> signUp(UserCredentials credentials, BuildContext context) async {
@@ -57,54 +61,9 @@ class AuthViewModel extends ChangeNotifier {
     scopes: [
       'email',
       'profile',
+      'https://www.googleapis.com/auth/tasks',
     ],
   );
-
-  Future<void> googleSignIn(BuildContext context) async {
-    try {
-      // サインイン済みなら signInSilently を試行
-      final existingUser = await _googleSignIn.signInSilently();
-      if (existingUser != null) {
-        // すでにログイン済みなら、そのまま使う
-        print("Already signed in with Google: ${existingUser.email}");
-        // ここでトークンを取得し、バックエンド連携するなり Firebase Auth にリンクするなり
-        final auth = await existingUser.authentication;
-        final accessToken = auth.accessToken;
-        final idToken = auth.idToken;
-        print('AccessToken: $accessToken');
-        print('IDToken: $idToken');
-        // TODO: サーバーへ送信 or Firebase signInWithCredential など
-        Navigator.pushReplacementNamed(context, '/chat');
-        return;
-      }
-
-      // まだなら、Googleアカウント選択画面が出る
-      final account = await _googleSignIn.signIn();
-      if (account == null) {
-        // ユーザーがキャンセルした
-        print("Google sign in cancelled by user.");
-        return;
-      }
-
-      // 成功時の処理
-      print("Google sign in success: ${account.email}");
-      final auth = await account.authentication;
-      final accessToken = auth.accessToken;
-      final idToken = auth.idToken;
-      print('AccessToken: $accessToken');
-      print('IDToken: $idToken');
-      Navigator.pushReplacementNamed(context, '/chat');
-
-      // TODO: ここでサーバーにトークンを渡す or Firebaseと連携など
-      // 例: Firebaseに連携する場合 => signInWithCredential(GoogleAuthProvider.credential(idToken: idToken))
-      // 例: 独自バックエンドの場合 => POST /google_auth でサーバーサイド検証
-    } catch (e) {
-      print("Google sign in failed: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Google SignIn Failed: $e")),
-      );
-    }
-  }
 
   // Googleサインアウト（必要であれば）
   Future<void> googleSignOut(BuildContext context) async {
@@ -129,11 +88,9 @@ class AuthViewModel extends ChangeNotifier {
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
         );
+        _accessToken = googleAuth.accessToken;
         // ここで FirebaseAuth にサインイン
         await FirebaseAuth.instance.signInWithCredential(credential);
-
-        // これで FirebaseAuth.instance.currentUser が有効になる
-        print("FirebaseAuth signIn success: ${FirebaseAuth.instance.currentUser?.uid}");
       } catch (e) {
         print("Google sign in error: $e");
       }
