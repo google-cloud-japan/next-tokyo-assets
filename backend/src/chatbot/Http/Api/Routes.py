@@ -227,9 +227,15 @@ async def save_task(request: TaskSaveRequest) -> TaskSaveResponse:
         error=saveTaskUseCaseOutput.errorMessage,
     )
 
+@router.post("/api/chat/eventarc")
+async def handle_eventarc(request: Request):
+    data = await request.json()
+    print("Received Eventarc data:", data)
+    return {"status": "ok"}
 
 @router.get("/api/health")
 async def health_check() -> dict:
     """ヘルスチェックエンドポイント"""
     logger.debug("Health check requested")
     return {"status": "healthy"}
+
