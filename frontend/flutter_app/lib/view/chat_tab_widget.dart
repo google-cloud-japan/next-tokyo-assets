@@ -2,12 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hackathon_test1/view/common/input_with_send_button.dart';
 import 'package:hackathon_test1/viewmodel/chat_viewmodel.dart';
 
 import 'first_input_widget.dart';
 
 class ChatTabWidget extends ConsumerWidget {
-  const ChatTabWidget({
+  final TextEditingController _messageController = TextEditingController();
+
+  ChatTabWidget({
     super.key,
   });
 
@@ -50,26 +53,69 @@ class ChatTabWidget extends ConsumerWidget {
               }
 
               final docs = snapshot.data!.docs;
-              return ListView.builder(
-                padding: const EdgeInsets.all(8),
-                itemCount: docs.length,
-                itemBuilder: (context, index) {
-                  final data = docs[index].data() as Map<String, dynamic>;
-                  final content = data['content'] as String? ?? '';
-                  final role = data['role'] as String? ?? 'user';
-                  // Timestamp → DateTime への変換
-                  final createdAt = data['createdAt'];
-                  DateTime? createdTime;
-                  if (createdAt is Timestamp) {
-                    createdTime = createdAt.toDate();
-                  }
+              return Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 80),
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(8),
+                      itemCount: docs.length,
+                      itemBuilder: (context, index) {
+                        final data = docs[index].data() as Map<String, dynamic>;
+                        final content = data['content'] as String? ?? '';
+                        final role = data['role'] as String? ?? 'user';
+                        final createdAt = data['createdAt'];
+                        DateTime? createdTime;
+                        if (createdAt is Timestamp) {
+                          createdTime = createdAt.toDate();
+                        }
 
-                  return _buildChatBubble(
-                    content: content,
-                    role: role,
-                    createdTime: createdTime,
-                  );
-                },
+                        return _buildChatBubble(
+                          content: content,
+                          role: role,
+                          createdTime: createdTime,
+                        );
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: InputWithSendButton(
+                        hintText: '目標を入力してください',
+                        controller: _messageController,
+                        onPressed: () async {
+                          final messageText = _messageController.text.trim();
+
+                          if (messageText.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('チャットを入力してください')),
+                            );
+                            return;
+                          }
+
+                          try {
+                            await chatViewModel.addMessage(
+                              context: context,
+                              userId: userId,
+                              goalId: selectedGoalId,
+                              message: messageText,
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('入力値が不正です: $e')),
+                            );
+                          } finally {
+                            _messageController.clear();
+                          }
+                        },
+                        iconImage: Icons.send,
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           ),

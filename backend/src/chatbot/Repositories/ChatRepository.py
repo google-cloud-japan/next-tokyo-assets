@@ -41,7 +41,7 @@ class ChatHistoryRepository:
                     .collection(DatabaseConfig.USERS_COLLECTION_NAME).document(userId) \
                     .collection(DatabaseConfig.GOALS_COLLECTION_NAME).document(goalId) \
                     .collection(DatabaseConfig.CHAT_HISTORY_COLLECTION_NAME).add(chatMessageData)
-                logger.info("Saved chat message to users collection")
+                logger.info(f"Saved chat message to users collection {chatMessage.content}, {chatMessage.status}")
         except Exception as e:
             logger.error(f"Failed to save chat message: {e}", exc_info=True)
             raise  # 呼び出し元で例外をハンドリングできるように再送出
