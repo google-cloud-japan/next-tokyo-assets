@@ -88,13 +88,9 @@ class AuthViewModel extends ChangeNotifier {
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
         );
-        print("AccessToken : ${googleAuth.accessToken}");
         _accessToken = googleAuth.accessToken;
         // ここで FirebaseAuth にサインイン
         await FirebaseAuth.instance.signInWithCredential(credential);
-
-        // これで FirebaseAuth.instance.currentUser が有効になる
-        print("FirebaseAuth signIn success: ${FirebaseAuth.instance.currentUser?.uid}");
       } catch (e) {
         print("Google sign in error: $e");
       }
