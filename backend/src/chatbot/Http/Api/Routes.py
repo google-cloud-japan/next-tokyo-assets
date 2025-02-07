@@ -21,6 +21,7 @@ from Services.ChatGeneratorService import ChatGeneratorService
 from UseCases.ChatQuestioningUseCase import ChatQuestioningUseCase
 from UseCases.GenerateTaskUseCase import GenerateTaskUseCase
 from UseCases.SaveTaskUseCase import SaveTaskUseCase
+from google.cloud import firestore
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,100 @@ async def send_chat(request: ChatMessageRequest) -> ChatMessageResponse:
         message=useCaseOutput.message,
         error=useCaseOutput.errorMessage
     )
+
+
+@router.post("/api/chat/eventarc")
+async def chat_eventarc_endpoint(request: Request) -> dict:
+    """
+    Firestoreにドキュメント(users/{uid}/goals/{goalId}/chat/{chatId})が作成されたときに
+    Eventarc経由で呼び出され、LLM応答を生成するためのエンドポイント。
+    """
+    # 1. CloudEventをパース
+    raw_body = await request.body()
+    try:
+        event = from_http(request.headers, raw_body)
+    except Exception as e:
+        logger.error(f"Failed to parse CloudEvent: {e}", exc_info=True)
+        raise HTTPException(status_code=400, detail=f"Invalid CloudEvent: {e}")
+
+    # 2. documentパスを取得 (例: users/{uid}/goals/{goalId}/chat/{chatId})
+    document_path = event.get("document")
+    if not document_path:
+        logger.error("No 'document' field found in CloudEvent")
+        raise HTTPException(status_code=400, detail="No document path in CloudEvent")
+
+    logger.info(f"CloudEvent document path: {document_path}")
+
+    # 3. パスを分解: "users/{uid}/goals/{goalId}/chat/{chatId}"
+    parts = document_path.split("/")
+    # [0] = "users", [1] = uid, [2] = "goals", [3] = goalId, [4] = "chat", [5] = chatId
+    if len(parts) < 6:
+        logger.error("Document path format is invalid (expected 6 parts).")
+        raise HTTPException(status_code=400, detail="Invalid Firestore document path")
+
+    uid = parts[1]
+    goalId = parts[3]
+    chatId = parts[5]
+
+    # 4. Firestoreから当該ドキュメントを読み取る
+    doc_ref = db.collection("users").document(uid)\
+                .collection("goals").document(goalId)\
+                .collection("chat").document(chatId)
+
+    doc_snapshot = doc_ref.get()
+    if not doc_snapshot.exists:
+        logger.error("Target chat document not found in Firestore")
+        raise HTTPException(status_code=404, detail="Chat document not found")
+
+    doc_data = doc_snapshot.to_dict()
+    logger.info(f"doc_data = {doc_data}")
+
+    # doc_data には { content, createdAt, role } がある想定
+    prompt = doc_data.get("content", "")
+    role   = doc_data.get("role", "user")
+    # userId/goalId は pathから取得済み (uid, goalId)
+
+    # もし"role"が"assistant"なら応答不要かもしれない、などロジック要件に応じて分岐可能
+    if role != "user":
+        logger.info(f"Skipping since role={role} is not user.")
+        return {"status": "skip", "reason": f"role={role} not user."}
+
+    # 5. ユースケース呼び出し: (send_chat と同等の処理)
+    logger.info("Calling ChatQuestioningUseCase from eventarc endpoint...")
+
+    useCase = ChatQuestioningUseCase(qaChatService, chatRepository)
+    useCaseInput = useCase.Input(
+        prompt=prompt,
+        userId=uid,
+        goalId=goalId
+    )
+    useCaseOutput = useCase.generate(useCaseInput)
+    logger.info(f"useCaseOutput: {useCaseOutput}")
+
+    # 6. Firestoreに「LLM応答メッセージ」を書き込み
+    #    例: users/{uid}/goals/{goalId}/chat/{新しいchatId}
+    #    フィールド: content=useCaseOutput.message, createdAt=serverTimestamp, role="assistant"
+    
+    new_chat_data = {
+        "content": useCaseOutput.message,
+        "createdAt": firestore.SERVER_TIMESTAMP,  # Firebaseのサーバー時刻
+        "role": "assistant",
+        "status": "success"
+    }
+    # chatコレクションに追加（自動生成ID）
+    chat_collection_ref = db.collection("users").document(uid)\
+                            .collection("goals").document(goalId)\
+                            .collection("chat")
+
+    added_doc_ref = chat_collection_ref.add(new_chat_data)  # returns (DocumentReference, writeTime)
+    logger.info(f"Assistant response written to Firestore with ID = {added_doc_ref[0].id}")
+
+    # 7. 結果を返す (Eventarc用に簡易レスポンスでOK)
+    return {
+        "status": "success",
+        "message": useCaseOutput.message,
+        "error": useCaseOutput.errorMessage
+    }
 
 
 @router.post("/api/goal/generate", response_model=GoalGenerateResponse)
