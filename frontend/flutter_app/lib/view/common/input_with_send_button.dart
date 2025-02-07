@@ -20,10 +20,11 @@ class InputWithSendButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
           height: 60,
-          width: MediaQuery.of(context).size.width * 0.8,
+          width: 320,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),

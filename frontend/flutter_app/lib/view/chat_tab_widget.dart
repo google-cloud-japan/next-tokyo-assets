@@ -80,8 +80,7 @@ class ChatTabWidget extends ConsumerWidget {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16, horizontal: 20),
+                    padding: const EdgeInsets.only(bottom: 8.0),
                     child: Align(
                       alignment: Alignment.bottomCenter,
                       child: InputWithSendButton(
