@@ -14,10 +14,12 @@ class ChatViewModel extends ChangeNotifier {
   String? selectedGoalText; // 追加: 選択した目標の文言
 
   // メッセージを Firestore に追加
-  Future<void> addMessage(String notebookId, BuildContext context) async {
-    final text = textController.text.trim();
-    if (text.isEmpty) return;
-
+  Future<void> addMessage({
+    required BuildContext context,
+    required String userId,
+    required String goalId,
+    required String message,
+  }) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       SnackbarHelper.show(context, 'ログインしていません');
@@ -25,20 +27,18 @@ class ChatViewModel extends ChangeNotifier {
     }
 
     try {
+      // chat サブコレクションにメッセージを1件追加
       await _firestore
           .collection('users')
-          .doc(currentUser.uid)
-          .collection('notebooks')
-          .doc(notebookId)
+          .doc(userId)
+          .collection('goals')
+          .doc(goalId)
           .collection('chat')
           .add({
-        'content': text,
+        'content': message,
         'role': 'user',
         'createdAt': FieldValue.serverTimestamp(),
       });
-
-      textController.clear();
-      SnackbarHelper.show(context, 'メッセージが送信されました');
     } catch (e) {
       SnackbarHelper.show(context, 'Firestore 書き込みエラー: $e');
     }
