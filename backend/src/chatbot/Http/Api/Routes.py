@@ -137,24 +137,6 @@ async def chat_eventarc_endpoint(request: Request) -> dict:
     useCaseOutput = useCase.generate(useCaseInput)
     logger.info(f"useCaseOutput2: {useCaseOutput}")
 
-    # 6. Firestoreに「LLM応答メッセージ」を書き込み
-    #    例: users/{uid}/goals/{goalId}/chat/{新しいchatId}
-    #    フィールド: content=useCaseOutput.message, createdAt=serverTimestamp, role="assistant"
-    
-    new_chat_data = {
-        "content": useCaseOutput.message,
-        "createdAt": firestore.SERVER_TIMESTAMP,  # Firebaseのサーバー時刻
-        "role": "assistant",
-        "status": "success"
-    }
-    # chatコレクションに追加（自動生成ID）
-    chat_collection_ref = db.collection("users").document(uid)\
-                            .collection("goals").document(goalId)\
-                            .collection("chat")
-
-    added_doc_ref = chat_collection_ref.add(new_chat_data)  # returns (DocumentReference, writeTime)
-    logger.info(f"Assistant response written to Firestore with ID = {added_doc_ref[0].id}")
-
     # 7. 結果を返す (Eventarc用に簡易レスポンスでOK)
     return {
         "status": "success",
