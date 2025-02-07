@@ -1,11 +1,31 @@
-import os
+RESPONSE_MIME_TYPE = "application/json"
+RESPONSE_SCHEMA = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "status": {"type": "string"},
+            "message": {"type": "string"},
+            "tasks": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "title": {"type": "string"},
+                        "description": {"type": "string"},
+                        "deadline": {"type": "string"},
+                        "requiredTime": {"type": "integer"},
+                        "priority": {"type": "integer", "minimum": 1, "maximum": 5},
+                    },
+                    "required": ["title", "description", "deadline", "requiredTime", "priority"],
+                },
+            },
+        },
+        "required": ["status", "message", "tasks"],
+    },
+}
 
-# Vertex AI設定
-PROJECT_ID = os.environ["PROJECT_ID"]
-VERTEX_AI_LOCATION = os.environ["VERTEX_AI_LOCATION"]
-GENERATIVE_MODEL_NAME = os.environ["GENERATIVE_MODEL_NAME"]
-
-# システムプロンプト
+# https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/system-instructions?hl=ja
 SYSTEM_INSTRUCTION = """あなたは目標達成のためのタスク設計スペシャリストです。
 
 【あなたの役割】
@@ -79,4 +99,4 @@ messageには、どういう情報が不足しているかを記載してくだ�
 {
   "status": "clarification_needed",
   "message": "入力内容は目標に関するものではないようです。私はあなたの目標の達成をサポートしたいです。達成したい目標を具体的に教えてください（例：「英語を習得したい」「AWS資格を取得したい」など）"
-}""" 
+}"""

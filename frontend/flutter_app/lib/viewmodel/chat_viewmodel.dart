@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hackathon_test1/model/chat_message.dart';
 import 'package:hackathon_test1/view/common/snackbar_helper.dart';
 
 final chatViewModelProvider = ChangeNotifierProvider((ref) => ChatViewModel());
@@ -13,6 +12,37 @@ class ChatViewModel extends ChangeNotifier {
   final TextEditingController textController = TextEditingController();
   String? selectedGoalId;
   String? selectedGoalText; // 追加: 選択した目標の文言
+
+  // メッセージを Firestore に追加
+  Future<void> addMessage({
+    required BuildContext context,
+    required String userId,
+    required String goalId,
+    required String message,
+  }) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      SnackbarHelper.show(context, 'ログインしていません');
+      return;
+    }
+
+    try {
+      // chat サブコレクションにメッセージを1件追加
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('goals')
+          .doc(goalId)
+          .collection('chat')
+          .add({
+        'content': message,
+        'role': 'user',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      SnackbarHelper.show(context, 'Firestore 書き込みエラー: $e');
+    }
+  }
 
   // チャットメッセージの Stream を取得
   Stream<QuerySnapshot<Object?>>? getChatStream(String userId, String? goalId) {
@@ -95,44 +125,13 @@ class ChatViewModel extends ChangeNotifier {
           .collection('goals')
           .doc(goalId)
           .collection('chat')
-          .add(ChatMessage(
-            content: message,
-            role: "user",
-            createdAt: DateTime.now(),
-          ).toJson());
+          .add({
+        'content': message,
+        'role': 'user',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       SnackbarHelper.show(context, '期日・作業時間・メッセージを保存しました');
-    } catch (e) {
-      SnackbarHelper.show(context, 'Firestore 書き込みエラー: $e');
-    }
-  }
-
-// メッセージを Firestore に追加
-  Future<void> addMessage({
-    required BuildContext context,
-    required String userId,
-    required String goalId,
-    required String message,
-  }) async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      SnackbarHelper.show(context, 'ログインしていません');
-      return;
-    }
-
-    try {
-      // chat サブコレクションにメッセージを1件追加
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('goals')
-          .doc(goalId)
-          .collection('chat')
-          .add(ChatMessage(
-            content: message,
-            role: "user",
-            createdAt: DateTime.now(),
-          ).toJson());
     } catch (e) {
       SnackbarHelper.show(context, 'Firestore 書き込みエラー: $e');
     }

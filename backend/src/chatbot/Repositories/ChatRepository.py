@@ -8,6 +8,8 @@ from Domain.Models.Chat import ChatMessage, ChatRole, ChatStatus
 from Domain.Models.Task import Task
 from Domain.Models.TaskCollection import TaskCollection
 from Infrastructure.Firebase.FirebaseClient import FirebaseClient
+from google.cloud import firestore
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +29,7 @@ class ChatHistoryRepository:
                 chatMessageData = {
                     "role": chatMessage.role,
                     "content": chatMessage.content,
-                    "createdAt": chatMessage.createdAt.isoformat(),
+                    "createdAt": firestore.SERVER_TIMESTAMP,
                     "status": chatMessage.status,
                 }
                 # タスクがある場合はタスクを追加
@@ -68,10 +70,14 @@ class ChatHistoryRepository:
             for doc in docs:
                 data = doc.to_dict()
                 try:
+                    created_at = data["createdAt"]  # Timestamp型 or datetime型
+                    if hasattr(created_at, "to_datetime"):
+                        created_at = created_at.to_datetime()
+                        
                     message_data = {
                         "role": ChatRole(data.get("role")),
                         "content": data.get("content"),
-                        "createdAt": datetime.fromisoformat(data.get("createdAt")),
+                        "createdAt": created_at,
                         "status": ChatStatus(data.get("status")),
                     }
                     # タスクがある場合はタスクを追加
