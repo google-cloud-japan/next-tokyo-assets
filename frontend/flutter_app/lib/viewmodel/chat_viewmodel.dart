@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hackathon_test1/model/chat_message.dart';
 import 'package:hackathon_test1/view/common/snackbar_helper.dart';
 
 final chatViewModelProvider = ChangeNotifierProvider((ref) => ChatViewModel());
