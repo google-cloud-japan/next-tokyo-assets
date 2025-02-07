@@ -1,7 +1,6 @@
 # task_sync_service.py （例）
 from datetime import datetime, date, timedelta, time
 from .day_slot_calculator import get_day_slot_map
-from .urgency_calculator import calculate_urgencies
 from .daily_allocation import allocate_tasks_day_by_day
 from .tasks_api_client import get_tasks_service, create_task_list, create_todo_in_google_tasks
 
