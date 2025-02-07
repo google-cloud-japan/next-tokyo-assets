@@ -110,10 +110,13 @@ async def chat_eventarc_endpoint(request: Request) -> dict:
 
     # doc_data には { content, createdAt, role } がある想定
     prompt = doc_data.get("content", "")
-    role   = doc_data.get("role", "")
+    role   = doc_data.get("role")
     is_first = doc_data.get("isFirst", False)
     # userId/goalId は pathから取得済み (uid, goalId)
 
+    if role is None:  # あるいは (role not in doc_data)
+        logger.info("Skipping because role is None or missing")
+        return {"status": "skip", "reason": "role missing"}
     # もし"role"が"assistant"なら応答不要かもしれない、などロジック要件に応じて分岐可能
     if role != "user":
         logger.info(f"Skipping since role={role} is not user.")
