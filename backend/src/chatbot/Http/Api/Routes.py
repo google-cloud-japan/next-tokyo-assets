@@ -111,13 +111,17 @@ async def chat_eventarc_endpoint(request: Request) -> dict:
     # doc_data には { content, createdAt, role } がある想定
     prompt = doc_data.get("content", "")
     role   = doc_data.get("role", "user")
+    is_first = doc_data.get("isFirst", False)
     # userId/goalId は pathから取得済み (uid, goalId)
 
     # もし"role"が"assistant"なら応答不要かもしれない、などロジック要件に応じて分岐可能
     if role != "user":
         logger.info(f"Skipping since role={role} is not user.")
         return {"status": "skip", "reason": f"role={role} not user."}
-
+    if is_first:
+        logger.info("Skipping because isFirst=true (initial chat).")
+        return {"status": "skip", "reason": "isFirst=true"}
+    
     # 5. ユースケース呼び出し: (send_chat と同等の処理)
     logger.info("Calling ChatQuestioningUseCase from eventarc endpoint...")
 

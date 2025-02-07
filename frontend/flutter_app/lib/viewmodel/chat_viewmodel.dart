@@ -128,6 +128,7 @@ class ChatViewModel extends ChangeNotifier {
           .add({
         'content': message,
         'role': 'user',
+        'isFirst': true,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
