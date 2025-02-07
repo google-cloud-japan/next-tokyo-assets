@@ -110,7 +110,7 @@ async def chat_eventarc_endpoint(request: Request) -> dict:
 
     # doc_data には { content, createdAt, role } がある想定
     prompt = doc_data.get("content", "")
-    role   = doc_data.get("role", "user")
+    role   = doc_data.get("role", "")
     is_first = doc_data.get("isFirst", False)
     # userId/goalId は pathから取得済み (uid, goalId)
 
@@ -132,7 +132,7 @@ async def chat_eventarc_endpoint(request: Request) -> dict:
         goalId=goalId
     )
     useCaseOutput = useCase.generate(useCaseInput)
-    logger.info(f"useCaseOutput: {useCaseOutput}")
+    logger.info(f"useCaseOutput2: {useCaseOutput}")
 
     # 6. Firestoreに「LLM応答メッセージ」を書き込み
     #    例: users/{uid}/goals/{goalId}/chat/{新しいchatId}
