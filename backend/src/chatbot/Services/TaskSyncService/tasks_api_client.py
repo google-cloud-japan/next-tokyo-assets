@@ -1,11 +1,6 @@
 # chatbot/services/tasks_api_client.py
-
-import os
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
-from datetime import datetime
 
 TASKS_SCOPES = ["https://www.googleapis.com/auth/tasks"]
 
@@ -21,30 +16,19 @@ def list_task_lists(service):
     tasklists = results.get('items', [])
     return tasklists
 
-def get_tasks_service():
+def get_tasks_service(access_token):
     """
     Google Tasks APIのServiceインスタンスを返す。
     認証情報が保存されていれば再利用し、なければ新たに認証フローを実行する。
     """
-    creds = None
-    token_path = "credentials/token_tasks.json"  # 認証結果(トークン)を保存するファイル
-
-    if os.path.exists(token_path):
-        creds = Credentials.from_authorized_user_file(token_path, TASKS_SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                "credentials/credentials_desktop.json",  # ダウンロードしたOAuthクレデンシャルファイル
-                TASKS_SCOPES
-            )
-            creds = flow.run_local_server(port=0)  # GUI環境がある場合
-            # ヘッドレス環境の場合は flow.run_console() に変更
-        # 認証した資格情報をファイルに保存 → 次回から再利用
-        with open(token_path, "w") as token:
-            token.write(creds.to_json())
-
+    creds = Credentials(
+        token=access_token,
+        # refresh_token=refresh_token,
+        # token_uri="https://oauth2.googleapis.com/token",  # Google OAuthのトークンエンドポイント
+        # client_id=client_id,
+        # client_secret=client_secret,
+        scopes=TASKS_SCOPES
+    )
     service = build("tasks", "v1", credentials=creds)
     return service
 

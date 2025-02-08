@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from Config.Llm import GenerateTasksConfig, GenerateChatConfig
+from Config.Llm import GenerateTasksConfig, GenerateChatConfig, GenerateTodayConfig
 
 
 class LlmConfig(BaseModel):
@@ -28,3 +28,10 @@ class LlmConfigFactory:
             response_mime_type=GenerateChatConfig.RESPONSE_MIME_TYPE,
             system_instruction=GenerateChatConfig.SYSTEM_INSTRUCTION
         )
+        
+    @classmethod
+    def create_today_config(cls):
+        return LlmConfig(
+            response_mime_type=GenerateTodayConfig.RESPONSE_MIME_TYPE,
+            system_instruction=GenerateTodayConfig.SYSTEM_INSTRUCTION
+        )        

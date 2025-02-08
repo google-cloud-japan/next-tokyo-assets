@@ -2,17 +2,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hackathon_test1/repository/task_repository.dart';
+import 'package:hackathon_test1/viewmodel/auth_viewmodel.dart';
 import 'package:hackathon_test1/viewmodel/chat_viewmodel.dart';
+import 'dart:convert';
 
-/// 2つ目のタブ用のレイアウトサンプル
+import 'package:intl/intl.dart';
+
+/// 2つ目のタブ用のサンプルウィジェット
 class TaskTabWidget extends ConsumerWidget {
-  const TaskTabWidget({
-    super.key,
-  });
+  const TaskTabWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 現在ログイン中のユーザー
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       // ログインしていない場合
@@ -20,67 +22,141 @@ class TaskTabWidget extends ConsumerWidget {
     }
 
     final chatViewModel = ref.watch(chatViewModelProvider);
+    final authViewModel = ref.watch(authViewModelProvider);
     final userId = user.uid;
     final selectedGoalId = chatViewModel.selectedGoalId;
+    final selectedGoalText = chatViewModel.selectedGoalText;
 
-    // タスク一覧を取得する Stream
-    final tasksStream = chatViewModel.getTasksStream(userId, selectedGoalId);
+    // goalId が選択されていない場合
+    if (selectedGoalId == null) {
+      return const Center(child: Text('目標が選択されていません'));
+    }
 
-    // タスク一覧を表示
-    return StreamBuilder<QuerySnapshot>(
-      stream: tasksStream,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // データ待ちのローディング中
+    // 1) ゴール1件のドキュメントをストリームで監視 (taskFixed の変化を追う)
+    return StreamBuilder<DocumentSnapshot>(
+      stream: chatViewModel.getGoalDocStream(userId, selectedGoalId),
+      builder: (context, goalSnapshot) {
+        if (goalSnapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (!snapshot.hasData) {
-          return const Center(child: Text('タスクがありません'));
+        if (!goalSnapshot.hasData || !goalSnapshot.data!.exists) {
+          return const Center(child: Text('目標が存在しません'));
         }
 
-        final docs = snapshot.data!.docs;
-        if (docs.isEmpty) {
-          return const Center(child: Text('タスクがありません'));
-        }
+        final goalDoc = goalSnapshot.data!;
+        final data = goalDoc.data() as Map<String, dynamic>?;
 
-        // タスクのリストを表示
-        return ListView.builder(
-          itemCount: docs.length,
-          itemBuilder: (context, index) {
-            final data = docs[index].data() as Map<String, dynamic>;
+        // taskFixed の値を取得 (なければ false 扱い)
+        final bool isTaskFixed = data?['taskFixed'] as bool? ?? false;
 
-            // Firestore の項目
-            final title = data['title'] as String? ?? 'No Title';
-            final description = data['description'] as String? ?? '';
-            final priority = data['priority'] as int? ?? 0;
-            final deadline = data['deadline']; // Timestamp 形式の場合あり
-            final createdAt = data['createdAt']; // Timestamp 形式の場合あり
-            final requiredTime = data['requiredTime'] as int? ?? 0;
-
-            // Timestamp から DateTime への変換例（Firestore の Timestamp の場合）
-            DateTime? deadlineDate;
-            if (deadline != null && deadline is Timestamp) {
-              deadlineDate = deadline.toDate();
+        // 2) タスク一覧をストリームで取得
+        final tasksStream = chatViewModel.getTasksStream(userId, selectedGoalId);
+        return StreamBuilder<QuerySnapshot>(
+          stream: tasksStream,
+          builder: (context, tasksSnapshot) {
+            if (tasksSnapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (!tasksSnapshot.hasData) {
+              return const Center(child: Text('タスクがありません'));
             }
 
-            DateTime? createdDate;
-            if (createdAt != null && createdAt is Timestamp) {
-              createdDate = createdAt.toDate();
+            final docs = tasksSnapshot.data!.docs;
+            if (docs.isEmpty) {
+              // タスクコレクションが空の場合
+              return const Center(child: Text('タスクがありません'));
             }
 
-            return ListTile(
-              title: Text(title),
-              subtitle: Text(
-                '優先度: $priority\n'
-                '必要な時間: $requiredTime 時間\n'
-                '締め切り: ${deadlineDate?.toLocal() ?? '-'}\n'
-                '作成日: ${createdDate?.toLocal() ?? '-'}\n'
-                '$description',
-              ),
-              // それぞれのタスクをタップしたときの処理など
-              onTap: () {
-                // 例: 詳細画面へ遷移するなど
-              },
+            // タスク一覧を表示するリスト
+            final listTiles = List<Widget>.generate(docs.length, (index) {
+              final data = docs[index].data() as Map<String, dynamic>;
+
+              final title = data['title'] as String? ?? 'No Title';
+              final description = data['description'] as String? ?? '';
+              final priority = data['priority'] as int? ?? 0;
+              final requiredTime = data['requiredTime'] as int? ?? 0;
+
+              // Timestamp -> DateTime
+              DateTime? deadlineDate;
+              final deadline = data['deadline'];
+              if (deadline is Timestamp) {
+                // もし deadline が Firestore Timestamp型のとき
+                deadlineDate = deadline.toDate();
+              } else if (deadline is String) {
+                // もし "YYYY-MM-DD" の文字列で保存されている場合
+                try {
+                  deadlineDate = DateTime.parse(deadline);
+                } catch (_) {
+                  deadlineDate = null;
+                }
+              }
+
+              // 表示用テキスト (YYYY年MM月DD日)
+              String deadlineText = '-';
+              if (deadlineDate != null) {
+                deadlineText = DateFormat('yyyy年MM月dd日').format(deadlineDate);
+              }
+
+              DateTime? createdDate;
+              final createdAt = data['createdAt'];
+              if (createdAt is Timestamp) {
+                createdDate = createdAt.toDate();
+              }
+
+              return ListTile(
+                title: Text(title),
+                subtitle: Text(
+                  '優先度: $priority\n'
+                      '必要な時間: $requiredTime 時間\n'
+                      '締め切り: $deadlineText \n'
+                      // '作成日: ${createdDate?.toLocal() ?? '-'}\n'
+                      '$description',
+                ),
+                onTap: () {
+                  // タップ時の処理など
+                },
+              );
+            });
+
+            // 画面下にボタンを配置したいので Column
+            return Column(
+              children: [
+                // タスクをリストで表示
+                Expanded(
+                  child: ListView(children: listTiles),
+                ),
+
+                // 「タスクを確定する」ボタン
+                // isTaskFixed が falseの場合だけ表示
+                if (!isTaskFixed)
+                  Padding(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          // goal ドキュメントに taskFixed = true を書き込む
+                          await chatViewModel.updateTaskFixed(
+                            userId: userId,
+                            goalId: selectedGoalId,
+                            taskFixed: true,
+                          );
+                          // 書き込み完了後、自動的に goal ドキュメントが更新されるため
+                          // ここでのゴールスナップショットが再ビルドされ、isTaskFixed が true になってボタンが消える
+                          String? token = authViewModel.accessToken;
+                          await TaskRepository.fetchTasksAndPost(
+                            authToken: token!,
+                            userId: userId,
+                            goalId: selectedGoalId,
+                            goalText: selectedGoalText
+                          );
+                        },
+                        child: const Text('タスクを確定する'),
+                      ),
+                    ),
+                  ),
+              ],
             );
           },
         );

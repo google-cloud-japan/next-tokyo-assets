@@ -54,6 +54,31 @@ class VertexAiGateway(ILlmGateway):
         )
         logger.info("Initialized VertexAiGateway")
 
+    def askTodayTodo(self, jsonInput: str) -> str:
+        """
+        今日のタスクを問う
+        """
+        response = self.model.generate_content(contents=jsonInput)
+        logger.info(f"response: {response}")
+        response2 = self.extract_text_only(response_dict=response)
+        return response2
+        
+    def extract_text_only(self, response_dict: dict) -> str:
+        """
+        レスポンスdictのうち
+        candidates[0].content.parts[0].text のみ取り出して返す
+        """
+        try:
+            # 最初のcandidateだけに注目
+            logger.info(f"response_dict : {response_dict}")
+            candidate = response_dict.candidates
+            # content -> parts -> [0] -> text
+            text = candidate[0].content.parts[0].text
+            return text
+        except (KeyError, IndexError) as e:
+            # フィールドが無かった場合のフォールバック
+            return ""
+    
     def generateTask(self, prompt: str, context: List[ChatMessage]) -> GenerationResult:
         """
         プロンプトとコンテキストからVertex AIを使用して応答を生成する

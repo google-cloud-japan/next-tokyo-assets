@@ -1,8 +1,8 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Header
 from cloudevents.http import from_http
-
+from typing import Optional
 from Http.Api.Schemas import (
     GoalGenerateRequest,
     GoalGenerateResponse,
@@ -21,7 +21,17 @@ from Services.ChatGeneratorService import ChatGeneratorService
 from UseCases.ChatQuestioningUseCase import ChatQuestioningUseCase
 from UseCases.GenerateTaskUseCase import GenerateTaskUseCase
 from UseCases.SaveTaskUseCase import SaveTaskUseCase
-from google.cloud import firestore
+from Services.TaskSyncService.task_sync_service import TaskSyncService
+from pydantic import BaseModel
+from typing import List, Dict
+import datetime
+from Services.TaskSyncService.tasks_api_client import get_tasks_service
+import json
+
+class SyncTasksRequest(BaseModel):
+    tasks: List[Dict]  # またはList[TaskPayload]など
+    goal: str
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +41,12 @@ router = APIRouter()
 # 設定を渡してゲートウェイを初期化
 task_gateway = VertexAiGateway(config=LlmConfigFactory.create_task_config())
 qa_gateway = VertexAiGateway(config=LlmConfigFactory.create_qa_config())
+today_gateway = VertexAiGateway(config=LlmConfigFactory.create_today_config())
 
 # ユースケースごとに注入
 taskChatService = ChatGeneratorService(task_gateway)
 qaChatService = ChatMessageGeneratorService(qa_gateway)
+todayChatService = ChatMessageGeneratorService(today_gateway)
 
 chatRepository = ChatHistoryRepository()
 firebase_client = FirebaseClient.get_instance()
@@ -250,6 +262,30 @@ async def generate_goal_eventarc(request: Request) -> dict:
     # Eventarc 用なので {"status":"ok","message":"..."} とかのシンプルなレスポンスでもOK
     return {"status": "success", "message": "Goal generated successfully via Eventarc"}
 
+def combine_prompt_and_deadline(prompt: str, deadline_str: str) -> str:
+    """
+    deadline_str: "2025-04-30" のような "YYYY-MM-DD" 形式の文字列
+    
+    戻り値: 例
+      "ダイエットしたいです。 2025年04月30日までに達成したいです"
+    """
+    try:
+        # 1. deadline_strを datetimeオブジェクトに変換 (YYYY-MM-DD想定)
+        date_obj = datetime.strptime(deadline_str, "%Y-%m-%d")
+
+        # 2. "2025-04-30" を "2025年04月30日" の形にフォーマット
+        deadline_jp = date_obj.strftime("%Y年%m月%d日")
+
+        # 3. 元の prompt に deadlineを足した一文を生成
+        #    好みに合わせて改行やスペースを調整
+        prompt_with_deadline = f"{prompt} {deadline_jp}までに達成したいです"
+
+    except ValueError:
+        # deadline_str の形式が不正の場合など
+        # とりあえずdeadline文字列そのまま付加する処理にするなど
+        prompt_with_deadline = f"{prompt} {deadline_str}までに達成したいです"
+
+    return prompt_with_deadline
 
 def _handle_goal_generation(
     prompt: str,
@@ -263,10 +299,13 @@ def _handle_goal_generation(
     /api/goal/generate (REST) からも、/api/goal/generate/eventarc (Eventarc) からも
     この共通関数を呼び出す形にして重複を減らす。
     """
-
+   # deadlineをpromptに反映
+    prompt_final = combine_prompt_and_deadline(prompt, deadline)
+    
     useCase = GenerateTaskUseCase(taskChatService, chatRepository, taskRepository)
+    logger.error(f"Goal generation deadline: {deadline}")
     goalUseCaseInput = useCase.Input(
-        prompt=prompt,
+        prompt=prompt_final,
         userId=userId,
         goalId=goalId,
         deadline=deadline,
@@ -294,6 +333,71 @@ def _handle_goal_generation(
         error=goalUseCaseOutput.errorMessage,
     )
 
+@router.get("/today")
+def get_today_todo(
+    authorization: Optional[str] = Header(None)
+):
+    """
+    本日のタスクを問い合わせて教えてくれるエンドポイント
+    """   
+    if not authorization or not authorization.startswith("Bearer "):
+        return {"error": "No or invalid access token"}
+    access_token = authorization.replace("Bearer ", "")
+    service = get_tasks_service(access_token)
+
+    # タスクリスト一覧を取得 (一つにまとめているが、複数リストがある場合はループで処理も可能)
+    tasklists_result = service.tasklists().list().execute()
+    tasklists = tasklists_result.get('items', [])
+
+    today = datetime.date.today()
+    today_iso = today.isoformat()  # 'YYYY-MM-DD' 形式
+
+    today_tasks = []
+
+    for tasklist in tasklists:
+        tasklist_id = tasklist['id']
+        # 各リストのタスク一覧を取得
+        tasks_result = service.tasks().list(tasklist=tasklist_id, maxResults=100).execute()
+        tasks = tasks_result.get('items', [])
+
+        for t in tasks:
+            # dueが存在していて、かつ今日の日付に一致するものを抽出
+            # dueはISO8601形式（例：2025-02-08T00:00:00.000Z）になっていることが多い
+            due = t.get('due')
+            if due:
+                # due日付の YYYY-MM-DD 部分を取り出して今日と比較
+                due_date_str = due.split('T')[0]
+                if due_date_str == today_iso:
+                    today_tasks.append({
+                        'title': t.get('title'),
+                        'notes': t.get('notes'),
+                        'due': due,
+                        'status': t.get('status'),  # 'needsAction' or 'completed'
+                        'taskListTitle': tasklist['title']
+                    })
+    response = today_gateway.askTodayTodo(json.dumps(today_tasks, ensure_ascii=False))
+    return response     
+    
+@router.post("/sync-tasks")
+def sync_tasks_endpoint(
+    requestBody: SyncTasksRequest,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    受け取ったタスクリストを TaskSyncService に渡す
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        return {"error": "No or invalid access token"}
+
+    access_token = authorization.replace("Bearer ", "")
+
+    # リクエストボディから tasks, goal を取り出し
+    tasks = requestBody.tasks
+    goal = requestBody.goal
+
+    service = TaskSyncService(access_token=access_token)
+    result = service.sync_tasks(tasks, goal, access_token)
+    return result
 
 @router.post("/api/task/save", response_model=TaskSaveResponse)
 async def save_task(request: TaskSaveRequest) -> TaskSaveResponse:
@@ -318,9 +422,9 @@ async def save_task(request: TaskSaveRequest) -> TaskSaveResponse:
         error=saveTaskUseCaseOutput.errorMessage,
     )
 
-
 @router.get("/api/health")
 async def health_check() -> dict:
     """ヘルスチェックエンドポイント"""
     logger.debug("Health check requested")
     return {"status": "healthy"}
+

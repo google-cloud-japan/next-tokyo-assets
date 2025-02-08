@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:hackathon_test1/view/common/input_with_send_button.dart';
 import 'package:hackathon_test1/viewmodel/chat_viewmodel.dart';
+import 'package:intl/intl.dart';
 
 class FirstInputWidget extends StatefulWidget {
   final ChatViewModel chatViewModel;
@@ -94,6 +95,7 @@ class _FirstInputWidgetState extends State<FirstInputWidget> {
                 final month = int.parse(parts[1]);
                 final day = int.parse(parts[2]);
                 final deadlineDate = DateTime(year, month, day);
+                final deadlineFormatted = DateFormat('yyyy-MM-dd').format(deadlineDate);
 
                 final weeklyHours = double.parse(weeklyHoursText);
 
@@ -102,7 +104,7 @@ class _FirstInputWidgetState extends State<FirstInputWidget> {
                   context: context,
                   userId: widget.userId,
                   goalId: widget.goalId,
-                  deadline: deadlineDate,
+                  deadline: deadlineFormatted,
                   weeklyHours: weeklyHours,
                   message: messageText,
                 );
