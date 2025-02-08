@@ -21,8 +21,6 @@ from Services.ChatGeneratorService import ChatGeneratorService
 from UseCases.ChatQuestioningUseCase import ChatQuestioningUseCase
 from UseCases.GenerateTaskUseCase import GenerateTaskUseCase
 from UseCases.SaveTaskUseCase import SaveTaskUseCase
-from google.cloud import firestore
-
 from Services.TaskSyncService.task_sync_service import TaskSyncService
 from pydantic import BaseModel
 from typing import List, Dict
@@ -423,12 +421,6 @@ async def save_task(request: TaskSaveRequest) -> TaskSaveResponse:
         message=saveTaskUseCaseOutput.message,
         error=saveTaskUseCaseOutput.errorMessage,
     )
-
-@router.post("/api/chat/eventarc")
-async def handle_eventarc(request: Request):
-    data = await request.json()
-    print("Received Eventarc data:", data)
-    return {"status": "ok"}
 
 @router.get("/api/health")
 async def health_check() -> dict:
