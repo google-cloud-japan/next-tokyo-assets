@@ -26,8 +26,9 @@ from google.cloud import firestore
 from Services.TaskSyncService.task_sync_service import TaskSyncService
 from pydantic import BaseModel
 from typing import List, Dict
-from datetime import datetime
-
+import datetime
+from Services.TaskSyncService.tasks_api_client import get_tasks_service
+import json
 
 class SyncTasksRequest(BaseModel):
     tasks: List[Dict]  # またはList[TaskPayload]など
@@ -42,10 +43,12 @@ router = APIRouter()
 # 設定を渡してゲートウェイを初期化
 task_gateway = VertexAiGateway(config=LlmConfigFactory.create_task_config())
 qa_gateway = VertexAiGateway(config=LlmConfigFactory.create_qa_config())
+today_gateway = VertexAiGateway(config=LlmConfigFactory.create_today_config())
 
 # ユースケースごとに注入
 taskChatService = ChatGeneratorService(task_gateway)
 qaChatService = ChatMessageGeneratorService(qa_gateway)
+todayChatService = ChatMessageGeneratorService(today_gateway)
 
 chatRepository = ChatHistoryRepository()
 firebase_client = FirebaseClient.get_instance()
@@ -332,6 +335,50 @@ def _handle_goal_generation(
         error=goalUseCaseOutput.errorMessage,
     )
 
+@router.get("/today")
+def get_today_todo(
+    authorization: Optional[str] = Header(None)
+):
+    """
+    本日のタスクを問い合わせて教えてくれるエンドポイント
+    """   
+    if not authorization or not authorization.startswith("Bearer "):
+        return {"error": "No or invalid access token"}
+    access_token = authorization.replace("Bearer ", "")
+    service = get_tasks_service(access_token)
+
+    # タスクリスト一覧を取得 (一つにまとめているが、複数リストがある場合はループで処理も可能)
+    tasklists_result = service.tasklists().list().execute()
+    tasklists = tasklists_result.get('items', [])
+
+    today = datetime.date.today()
+    today_iso = today.isoformat()  # 'YYYY-MM-DD' 形式
+
+    today_tasks = []
+
+    for tasklist in tasklists:
+        tasklist_id = tasklist['id']
+        # 各リストのタスク一覧を取得
+        tasks_result = service.tasks().list(tasklist=tasklist_id, maxResults=100).execute()
+        tasks = tasks_result.get('items', [])
+
+        for t in tasks:
+            # dueが存在していて、かつ今日の日付に一致するものを抽出
+            # dueはISO8601形式（例：2025-02-08T00:00:00.000Z）になっていることが多い
+            due = t.get('due')
+            if due:
+                # due日付の YYYY-MM-DD 部分を取り出して今日と比較
+                due_date_str = due.split('T')[0]
+                if due_date_str == today_iso:
+                    today_tasks.append({
+                        'title': t.get('title'),
+                        'notes': t.get('notes'),
+                        'due': due,
+                        'status': t.get('status'),  # 'needsAction' or 'completed'
+                        'taskListTitle': tasklist['title']
+                    })
+    response = today_gateway.askTodayTodo(json.dumps(today_tasks, ensure_ascii=False))
+    return response     
     
 @router.post("/sync-tasks")
 def sync_tasks_endpoint(

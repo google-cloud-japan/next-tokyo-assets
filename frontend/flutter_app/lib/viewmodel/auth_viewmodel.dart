@@ -89,6 +89,7 @@ class AuthViewModel extends ChangeNotifier {
           idToken: googleAuth.idToken,
         );
         _accessToken = googleAuth.accessToken;
+        print("AccessToken : ${googleAuth.accessToken}");
         // ここで FirebaseAuth にサインイン
         await FirebaseAuth.instance.signInWithCredential(credential);
       } catch (e) {
