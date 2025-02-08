@@ -71,6 +71,10 @@ class ChatPage extends ConsumerWidget {
                           padding: const EdgeInsets.all(8.0),
                           child: AddGoalButton(viewModel: goalViewModel),
                         ),
+                        // const Padding(
+                        //   padding: EdgeInsets.all(8.0),
+                        //   child: ThemeToggleButton(),
+                        // )
                       ],
                     ),
                   ),
