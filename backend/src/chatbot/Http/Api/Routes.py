@@ -23,8 +23,15 @@ from UseCases.GenerateTaskUseCase import GenerateTaskUseCase
 from UseCases.SaveTaskUseCase import SaveTaskUseCase
 from google.cloud import firestore
 
-from typing import List
 from Services.TaskSyncService.task_sync_service import TaskSyncService
+from pydantic import BaseModel
+from typing import List, Dict
+from datetime import datetime
+
+
+class SyncTasksRequest(BaseModel):
+    tasks: List[Dict]  # またはList[TaskPayload]など
+    goal: str
 
 
 logger = logging.getLogger(__name__)
@@ -254,6 +261,30 @@ async def generate_goal_eventarc(request: Request) -> dict:
     # Eventarc 用なので {"status":"ok","message":"..."} とかのシンプルなレスポンスでもOK
     return {"status": "success", "message": "Goal generated successfully via Eventarc"}
 
+def combine_prompt_and_deadline(prompt: str, deadline_str: str) -> str:
+    """
+    deadline_str: "2025-04-30" のような "YYYY-MM-DD" 形式の文字列
+    
+    戻り値: 例
+      "ダイエットしたいです。 2025年04月30日までに達成したいです"
+    """
+    try:
+        # 1. deadline_strを datetimeオブジェクトに変換 (YYYY-MM-DD想定)
+        date_obj = datetime.strptime(deadline_str, "%Y-%m-%d")
+
+        # 2. "2025-04-30" を "2025年04月30日" の形にフォーマット
+        deadline_jp = date_obj.strftime("%Y年%m月%d日")
+
+        # 3. 元の prompt に deadlineを足した一文を生成
+        #    好みに合わせて改行やスペースを調整
+        prompt_with_deadline = f"{prompt} {deadline_jp}までに達成したいです"
+
+    except ValueError:
+        # deadline_str の形式が不正の場合など
+        # とりあえずdeadline文字列そのまま付加する処理にするなど
+        prompt_with_deadline = f"{prompt} {deadline_str}までに達成したいです"
+
+    return prompt_with_deadline
 
 def _handle_goal_generation(
     prompt: str,
@@ -267,10 +298,13 @@ def _handle_goal_generation(
     /api/goal/generate (REST) からも、/api/goal/generate/eventarc (Eventarc) からも
     この共通関数を呼び出す形にして重複を減らす。
     """
-
+   # deadlineをpromptに反映
+    prompt_final = combine_prompt_and_deadline(prompt, deadline)
+    
     useCase = GenerateTaskUseCase(taskChatService, chatRepository, taskRepository)
+    logger.error(f"Goal generation deadline: {deadline}")
     goalUseCaseInput = useCase.Input(
-        prompt=prompt,
+        prompt=prompt_final,
         userId=userId,
         goalId=goalId,
         deadline=deadline,
@@ -298,25 +332,26 @@ def _handle_goal_generation(
         error=goalUseCaseOutput.errorMessage,
     )
 
+    
 @router.post("/sync-tasks")
-def sync_tasks_endpoint(tasks: List[dict],   
-                        authorization: Optional[str] = Header(None)
+def sync_tasks_endpoint(
+    requestBody: SyncTasksRequest,
+    authorization: Optional[str] = Header(None)
 ):
     """
-    受け取ったタスクリストを TaskSyncService に渡して
-    Google Tasks と連携処理を行うエンドポイント。
+    受け取ったタスクリストを TaskSyncService に渡す
     """
     if not authorization or not authorization.startswith("Bearer "):
         return {"error": "No or invalid access token"}
 
     access_token = authorization.replace("Bearer ", "")
 
-    service = TaskSyncService(
-        access_token=access_token
-    )
-    # Pydanticモデルをdictに変換し、リスト化してsync_tasksに渡す
-    # tasks_dict_list = [task.dict() for task in tasks]
-    result = service.sync_tasks(tasks, access_token)
+    # リクエストボディから tasks, goal を取り出し
+    tasks = requestBody.tasks
+    goal = requestBody.goal
+
+    service = TaskSyncService(access_token=access_token)
+    result = service.sync_tasks(tasks, goal, access_token)
     return result
 
 @router.post("/api/task/save", response_model=TaskSaveResponse)

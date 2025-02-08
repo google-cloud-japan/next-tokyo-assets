@@ -95,7 +95,7 @@ class ChatViewModel extends ChangeNotifier {
     required BuildContext context,
     required String userId,
     required String goalId,
-    required DateTime deadline,
+    required String deadline,
     required double weeklyHours,
     required String message,
   }) async {
