@@ -69,8 +69,6 @@ class VertexAiGateway(ILlmGateway):
         candidates[0].content.parts[0].text のみ取り出して返す
         """
         try:
-            # 最初のcandidateだけに注目
-            logger.info(f"response_dict : {response_dict}")
             candidate = response_dict.candidates
             # content -> parts -> [0] -> text
             text = candidate[0].content.parts[0].text
