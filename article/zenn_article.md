@@ -44,20 +44,44 @@
 
 ### システム構成
 
-以下が本プロジェクトのシステム構成図です。
+以下が本プロジェクトのシステム構成図です。図の各要素について説明します。
 
 ![システム構成図](./images/system_configuration_chart.png)
 
-- **Flutter**: フロントエンド（UI）
-- **Firebase Authentication**: ユーザー認証を管理
-- **Docker / Docker Compose**: バックエンド環境のコンテナ化
-- **Cloud Run**: バックエンドコンテナをホスト
-- **Vertex AI API (Gemini 1.5 Flash)**: 高度な言語モデルを活用
-- **LLamaIndex on Vertex AI for RAG**: RAG（Retrieval-Augmented Generation）を実装
-- **Cloud Firestore API**: データやメタデータの保管
-- **Google カレンダー API**: 予定表連携
-- **EventArc**: GCP 内の非同期イベント駆動を実装
-- **Python 3.11+**: バックエンドランタイム
+- **フロントエンド**: Flutter を使用したUI実装
+- **認証基盤**: Firebase Authentication によるユーザー認証
+- **バックエンド**: Cloud Run 上でホストされるサーバー
+- **AI基盤**: Vertex AI API (Gemini 1.5 Flash) による言語モデル
+- **データストア**: Cloud Firestore API でのデータ管理
+- **外部連携**: Google カレンダー API との連携
+- **イベント制御**: EventArc による非同期イベント処理
+
+### 使用技術
+
+開発に使用した主な技術スタックです：
+
+#### プログラミング言語・フレームワーク
+- **フロントエンド**: Flutter
+- **バックエンド**: Python 3.11+
+- **コンテナ化**: Docker / Docker Compose
+
+#### クラウドサービス（Google Cloud）
+- **コンピューティング**: Cloud Run
+- **AI/ML**: Vertex AI API (Gemini 1.5 Flash)
+- **データベース**: Cloud Firestore API
+- **認証**: Firebase Authentication
+- **イベント管理**: EventArc
+- **外部API**: Google カレンダー API
+
+#### 開発支援ツール
+- **コミュニケーション**
+  - Slack: チーム内連絡
+  - Google Meet: オンラインミーティング
+- **プロジェクト管理**
+  - GitHub: コード管理
+  - GitHub Issues: タスク管理
+- **設計・計画**
+  - Miro: ホワイトボード・システム設計
 
 ### バックエンド実装とクラウド連携
 
