@@ -2,10 +2,36 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hackathon_test1/repository/task_repository.dart';
 import 'package:hackathon_test1/view/common/input_with_send_button.dart';
 import 'package:hackathon_test1/viewmodel/chat_viewmodel.dart';
-
+import '../main.dart';
+import '../viewmodel/auth_viewmodel.dart';
 import 'first_input_widget.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+
+// （デモ用）通知を飛ばす用の関数
+Future<void> showDemoNotification() async {
+  const AndroidNotificationDetails androidPlatformChannelSpecifics =
+  AndroidNotificationDetails(
+    'demo_channel_id',
+    'demo_channel_name',
+    importance: Importance.high,
+    priority: Priority.high,
+  );
+  const NotificationDetails platformChannelSpecifics =
+  NotificationDetails(android: androidPlatformChannelSpecifics);
+
+  // デモ通知を表示
+  await flutterLocalNotificationsPlugin.show(
+    0,                      // 通知ID（かぶらなければ何でもOK）
+    'デモ通知',              // 通知タイトル
+    '目標を選択してくださいがタップされました', // 通知本文
+    platformChannelSpecifics,
+    payload: 'demo_payload', // 必要であれば
+  );
+}
 
 class ChatTabWidget extends ConsumerWidget {
   final TextEditingController _messageController = TextEditingController();
@@ -22,12 +48,27 @@ class ChatTabWidget extends ConsumerWidget {
     }
 
     final chatViewModel = ref.watch(chatViewModelProvider);
+    final authViewModel = ref.watch(authViewModelProvider);
     final userId = user.uid;
     final selectedGoalId = chatViewModel.selectedGoalId;
 
-    // ① 目標がまだ選択されていない場合
+    // ① 目標がまだ選択されていない場合 → （デモ用途）テキストをタップしたら通知
     if (selectedGoalId == null) {
-      return const Center(child: Text('目標を選択してください'));
+      return Center(
+        child: GestureDetector(
+          onTap: () {
+            // タップされたときに通知を飛ばす
+            print("onTap for demo");
+            String? token = authViewModel.accessToken;
+            if (token != null) {
+              TaskRepository.fetchAndNotify(token);
+            }
+          },
+          child: const Text(
+            '目標を選択してください',
+          ),
+        ),
+      );
     }
 
     // チャットのStream

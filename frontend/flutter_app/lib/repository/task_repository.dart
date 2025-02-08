@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:convert';           // jsonEncode用
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+
+import '../main.dart';
 
 class TaskRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -49,6 +52,57 @@ class TaskRepository {
     }
 
     return result;
+  }
+
+  // (1) APIを叩いてレスポンスを取得し、(2) ローカル通知を表示する
+  static Future<void> fetchAndNotify(String authToken) async {
+    try {
+      // 1. HTTPリクエストを発行
+      final response = await http.get(
+        // Uri.parse("http://192.168.1.49:8080/today"),
+        Uri.parse("https://chatbot-api-514173068988.asia-northeast1.run.app/today"),
+        headers: {
+          "Authorization": "Bearer $authToken", // Tokenをヘッダーに添付
+          "Accept": "application/json",          // 必要なら追加
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decodedText = utf8.decode(response.bodyBytes);
+        print("response: $decodedText");
+        // 必要に応じてJSON解析するなら jsonDecode(response.body)
+
+        // 2. ローカル通知の設定
+        const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'demo_channel_id',
+          'demo_channel_name',
+          importance: Importance.high,
+          priority: Priority.high,
+        );
+        const NotificationDetails notificationDetails =
+        NotificationDetails(android: androidDetails);
+
+        // 3. 通知を表示
+        //    第1引数: 通知ID (任意のユニークな数)
+        //    第2引数: 通知タイトル
+        //    第3引数: 通知本文 (ここにAPIのレスポンスを入れる)
+        //    第4引数: 詳細設定
+        await flutterLocalNotificationsPlugin.show(
+          0,
+          'TaskTrailからのメッセージ',
+          decodedText, // 受け取ったテキストを本文に表示
+          notificationDetails,
+          payload: 'demo_payload', // 通知タップ時のデータなど
+        );
+      } else {
+        debugPrint(
+          "サーバーエラー: ${response.statusCode} (${response.reasonPhrase}) => ${response.body}",
+        );
+      }
+    } catch (e) {
+      debugPrint("エラー発生: $e");
+    }
   }
 
   /// Firestoreからtasksを取得し、JSON化したデータをHTTP POSTする
