@@ -24,7 +24,7 @@ from UseCases.SaveTaskUseCase import SaveTaskUseCase
 from Services.TaskSyncService.task_sync_service import TaskSyncService
 from pydantic import BaseModel
 from typing import List, Dict
-import datetime
+from datetime import datetime
 from Services.TaskSyncService.tasks_api_client import get_tasks_service
 import json
 
