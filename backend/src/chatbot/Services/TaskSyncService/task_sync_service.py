@@ -11,11 +11,11 @@ class TaskSyncService:
         self.tasks_service = get_tasks_service(
                     access_token=access_token,
                 )
-        self.task_title = "AI hackathon Tasks"
+        self.task_title = "AI hackathon Tasks0"
         self.start_dt = date.today()
         self.end_dt = self.start_dt + timedelta(days=7)
 
-    def sync_tasks(self, tasks: list[dict], access_token):
+    def sync_tasks(self, tasks: list[dict], goal, access_token):
         """
         受け取ったタスクを、Googleカレンダーの空き状況などを考慮して
         Google Tasks(API)に同期する一連の処理をまとめる。
@@ -32,7 +32,7 @@ class TaskSyncService:
         )
 
         # 3. Google Tasks APIでタスクリスト作成
-        new_task_list = create_task_list(self.tasks_service, self.task_title)
+        new_task_list = create_task_list(self.tasks_service, goal)
         task_list_id = new_task_list['id']
 
         # 4. allocated_slots をもとにTODO書き込み

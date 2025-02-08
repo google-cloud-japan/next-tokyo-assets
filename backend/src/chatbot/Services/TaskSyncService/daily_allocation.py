@@ -5,7 +5,7 @@ from . import day_slot_calculator
 from . import urgency_calculator
 from . import tasks_api_client
 
-TASK_TITLE = "AI hackathon Tasks"
+TASK_TITLE = "AI hackathon Tasks1"
 
 def update_allocated_slots(allocated_slots, current_day, task_title, allocated_slot_num):
     """

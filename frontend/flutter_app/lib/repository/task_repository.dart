@@ -56,19 +56,28 @@ class TaskRepository {
     required String authToken,
     required String userId,
     required String goalId,
+    required String? goalText,
   }) async {
     final repo = TaskRepository();
 
     // 1) Firestoreからtasksを取得 → JSONのリストに変換
     final tasksJsonList = await repo.getTasksAsJson(userId: userId, goalId: goalId);
 
+    if (goalText == null) {
+      return;
+    }
+
     // 2) JSON文字列に変換
-    final jsonString = jsonEncode(tasksJsonList);
+    final requestBody = {
+      "tasks": tasksJsonList,
+      "goal": goalText,
+    };
+    final jsonString = jsonEncode(requestBody);
 
     // 3) HTTP POSTする
-    const url = 'https://chatbot-api-514173068988.asia-northeast1.run.app/sync-tasks';
+    // const url = 'https://chatbot-api-514173068988.asia-northeast1.run.app/sync-tasks';
     // ローカル練習用
-    // const url = 'http://192.168.1.49:8080/sync-tasks';
+    const url = 'http://192.168.1.49:8080/sync-tasks';
     try {
       final response = await http.post(
         Uri.parse(url),

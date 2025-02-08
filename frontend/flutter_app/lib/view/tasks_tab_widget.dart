@@ -23,6 +23,7 @@ class TaskTabWidget extends ConsumerWidget {
     final authViewModel = ref.watch(authViewModelProvider);
     final userId = user.uid;
     final selectedGoalId = chatViewModel.selectedGoalId;
+    final selectedGoalText = chatViewModel.selectedGoalText;
 
     // goalId が選択されていない場合
     if (selectedGoalId == null) {
@@ -132,6 +133,7 @@ class TaskTabWidget extends ConsumerWidget {
                             authToken: token!,
                             userId: userId,
                             goalId: selectedGoalId,
+                            goalText: selectedGoalText
                           );
                         },
                         child: const Text('タスクを確定する'),

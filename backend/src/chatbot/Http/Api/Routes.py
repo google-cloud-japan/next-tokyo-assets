@@ -23,8 +23,13 @@ from UseCases.GenerateTaskUseCase import GenerateTaskUseCase
 from UseCases.SaveTaskUseCase import SaveTaskUseCase
 from google.cloud import firestore
 
-from typing import List
 from Services.TaskSyncService.task_sync_service import TaskSyncService
+from pydantic import BaseModel
+from typing import List, Dict
+
+class SyncTasksRequest(BaseModel):
+    tasks: List[Dict]  # またはList[TaskPayload]など
+    goal: str
 
 
 logger = logging.getLogger(__name__)
@@ -298,25 +303,26 @@ def _handle_goal_generation(
         error=goalUseCaseOutput.errorMessage,
     )
 
+    
 @router.post("/sync-tasks")
-def sync_tasks_endpoint(tasks: List[dict],   
-                        authorization: Optional[str] = Header(None)
+def sync_tasks_endpoint(
+    requestBody: SyncTasksRequest,
+    authorization: Optional[str] = Header(None)
 ):
     """
-    受け取ったタスクリストを TaskSyncService に渡して
-    Google Tasks と連携処理を行うエンドポイント。
+    受け取ったタスクリストを TaskSyncService に渡す
     """
     if not authorization or not authorization.startswith("Bearer "):
         return {"error": "No or invalid access token"}
 
     access_token = authorization.replace("Bearer ", "")
 
-    service = TaskSyncService(
-        access_token=access_token
-    )
-    # Pydanticモデルをdictに変換し、リスト化してsync_tasksに渡す
-    # tasks_dict_list = [task.dict() for task in tasks]
-    result = service.sync_tasks(tasks, access_token)
+    # リクエストボディから tasks, goal を取り出し
+    tasks = requestBody.tasks
+    goal = requestBody.goal
+
+    service = TaskSyncService(access_token=access_token)
+    result = service.sync_tasks(tasks, goal, access_token)
     return result
 
 @router.post("/api/task/save", response_model=TaskSaveResponse)
