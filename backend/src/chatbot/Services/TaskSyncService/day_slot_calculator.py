@@ -106,7 +106,7 @@ def decide_num_tasks(booked_hours):
     elif booked_hours < 6:
         return 3
     else:
-        return 2
+        return 1
     
 def get_day_slot_map(start_date, end_date, access_token):
     cal_service = get_calendar_service(access_token)

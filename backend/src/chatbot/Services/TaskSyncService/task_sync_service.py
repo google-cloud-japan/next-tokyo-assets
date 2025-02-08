@@ -49,15 +49,15 @@ class TaskSyncService:
                 due_datetime = datetime.combine(day, time(17, 0))  # 17:00に設定
                 
                 try:
-                    # 親タスクを作成
-                    parent_task = create_todo_in_google_tasks(
-                        service=self.tasks_service,
-                        task_list_id=task_list_id,
-                        title=parent_title,
-                        notes=parent_notes,
-                        due=due_datetime
-                    )
-                    print(f"Created Parent Task: {parent_task['title']} due on {parent_task.get('due', 'N/A')}")
+                    # # 親タスクを作成
+                    # parent_task = create_todo_in_google_tasks(
+                    #     service=self.tasks_service,
+                    #     task_list_id=task_list_id,
+                    #     title=parent_title,
+                    #     notes=parent_notes,
+                    #     due=due_datetime
+                    # )
+                    # print(f"Created Parent Task: {parent_task['title']} due on {parent_task.get('due', 'N/A')}")
                     
                     # サブタスクを作成
                     for slot in range(1, allocated_slot_num + 1):
@@ -72,7 +72,7 @@ class TaskSyncService:
                                 title=subtask_title,
                                 notes=subtask_notes,
                                 due=due_datetime,
-                                parent=parent_task['id'],  # 親タスクのIDを指定
+                                # parent=parent_task['id'],  # 親タスクのIDを指定
                             )
                             print(f"  Created Subtask: {subtask['title']} due on {subtask.get('due', 'N/A')}")
                         except Exception as e:
