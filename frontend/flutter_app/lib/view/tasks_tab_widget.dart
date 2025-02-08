@@ -7,6 +7,8 @@ import 'package:hackathon_test1/viewmodel/auth_viewmodel.dart';
 import 'package:hackathon_test1/viewmodel/chat_viewmodel.dart';
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
+
 /// 2つ目のタブ用のサンプルウィジェット
 class TaskTabWidget extends ConsumerWidget {
   const TaskTabWidget({super.key});
@@ -78,7 +80,21 @@ class TaskTabWidget extends ConsumerWidget {
               DateTime? deadlineDate;
               final deadline = data['deadline'];
               if (deadline is Timestamp) {
+                // もし deadline が Firestore Timestamp型のとき
                 deadlineDate = deadline.toDate();
+              } else if (deadline is String) {
+                // もし "YYYY-MM-DD" の文字列で保存されている場合
+                try {
+                  deadlineDate = DateTime.parse(deadline);
+                } catch (_) {
+                  deadlineDate = null;
+                }
+              }
+
+              // 表示用テキスト (YYYY年MM月DD日)
+              String deadlineText = '-';
+              if (deadlineDate != null) {
+                deadlineText = DateFormat('yyyy年MM月dd日').format(deadlineDate);
               }
 
               DateTime? createdDate;
@@ -92,8 +108,8 @@ class TaskTabWidget extends ConsumerWidget {
                 subtitle: Text(
                   '優先度: $priority\n'
                       '必要な時間: $requiredTime 時間\n'
-                      '締め切り: ${deadlineDate?.toLocal() ?? '-'}\n'
-                      '作成日: ${createdDate?.toLocal() ?? '-'}\n'
+                      '締め切り: $deadlineText \n'
+                      // '作成日: ${createdDate?.toLocal() ?? '-'}\n'
                       '$description',
                 ),
                 onTap: () {
