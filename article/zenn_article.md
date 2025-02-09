@@ -1,4 +1,9 @@
-# GCP の最新 AI× クラウドで切り開く次世代 AI エージェント開発：目標達成特化型 AI エージェント「Task Trail」
+# 目標達成支援型 AI エージェント「Task Trail」
+
+<img src="./images/tasktrail_logo.png" width=240><br>
+<img src="./images/初回チャット.png" width=200>
+<img src="./images/タスク画面.png" width=200>
+
 
 ## 概要
 
