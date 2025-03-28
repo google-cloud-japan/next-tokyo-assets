@@ -6,9 +6,14 @@ from cloudevents.http import from_http
 from flask import Flask, request
 from google.cloud import firestore, storage
 from tenacity import retry, wait_exponential
-from vertexai.generative_models import Content, GenerationConfig, Part
-from vertexai.preview import rag
-from vertexai.preview.generative_models import GenerativeModel, Tool
+from vertexai import rag
+from vertexai.generative_models import (
+    Content,
+    GenerationConfig,
+    GenerativeModel,
+    Part,
+    Tool,
+)
 
 # Logging config
 dictConfig({
@@ -33,13 +38,12 @@ app.config.from_prefixed_env()
 # Global variables for Google Cloud SDK
 PROJECT_ID = ""
 VERTEX_AI_LOCATION = ""
-PUBLISHER_MODEL = "publishers/google/models/text-multilingual-embedding-002"
-GENERATIVE_MODEL_NAME = "gemini-1.5-flash-001"
+GENERATIVE_MODEL_NAME = "gemini-2.0-flash-001"
 RAG_CHUNK_SIZE = 512
 RAG_CHUNK_OVERLAP = 100
 RAG_MAX_EMBEDDING_REQUESTS_PER_MIN = 900
 RAG_SIMILARITY_TOP_K = 3
-RAG_VECTOR_DISTANCE_THRESHOLD = 0.5
+RAG_VECTOR_SIMILARITY_THRESHOLD = 0.5
 QUESTION_FAILED_MESSAGE = "申し訳ございません。回答の生成に失敗しました。再度質問をやり直してください。"
 MAX_SUMMARIZATION_LENGTH = 2048
 MAX_TOTAL_COMMON_QUESTIONS_LENGTH = 1024
@@ -66,11 +70,16 @@ db = firestore.Client()
 # Retry with exponential backoff since only one file can be imported at the same time
 @retry(wait=wait_exponential(multiplier=5, max=40))
 def import_files(corpus_name, gcs_path):
+    transformation_config = rag.TransformationConfig(
+        chunking_config=rag.ChunkingConfig(
+            chunk_size=RAG_CHUNK_SIZE,
+            chunk_overlap=RAG_CHUNK_OVERLAP,
+        )
+    )
     return rag.import_files(
         corpus_name,
-        [gcs_path],
-        chunk_size=RAG_CHUNK_SIZE,
-        chunk_overlap=RAG_CHUNK_OVERLAP,
+        paths=[gcs_path],
+        transformation_config=transformation_config,
         max_embedding_requests_per_min=RAG_MAX_EMBEDDING_REQUESTS_PER_MIN,
     )
 
@@ -84,14 +93,9 @@ def add_user():
 
     app.logger.info(f"{event_id}: start adding a user: {uid}")
 
-    embedding_model_config = rag.EmbeddingModelConfig(
-        publisher_model=PUBLISHER_MODEL
-    )
-
     app.logger.info(f"{event_id}: start creating a rag corpus for a user: {uid}")
     rag_corpus = rag.create_corpus(
         display_name=uid,
-        embedding_model_config=embedding_model_config,
     )
     app.logger.info(f"{event_id}: finished creating a rag corpus for a user: {uid}")
     
@@ -125,15 +129,18 @@ def add_source():
 
     app.logger.info(f"{event_id}: start importing a source file: {name}")
     response = import_files(corpus_name, gcs_path)
-    app.logger.info(f"{event_id}: finished importing a source file: {response}")
+    app.logger.info(f"{event_id}: finished importing a source file: {response.imported_rag_files_count} files are imported")
 
     app.logger.info(f"{event_id}: start finding rag_file_id: {name}")
-    rag_files = rag.list_files(corpus_name=corpus_name)
+    rag_files = list(rag.list_files(corpus_name=corpus_name))
     rag_file_name = ""
     filename = storagePath.split('/')[-1]
     for rag_file in rag_files:
         if rag_file.display_name == filename:
             rag_file_name = rag_file.name
+    if not rag_file_name:
+        app.logger.error(f"{event_id}: rag_file_name not found for {filename}")
+        return ("failed", 500)
     rag_file_id = rag_file_name.split('/')[-1]
     app.logger.info(f"{event_id}: found rag_file_id: {rag_file_id}")
 
@@ -183,8 +190,10 @@ def question():
                         rag_file_ids=source_ids
                     )
                 ],
-                similarity_top_k=RAG_SIMILARITY_TOP_K,
-                vector_distance_threshold=RAG_VECTOR_DISTANCE_THRESHOLD,
+                rag_retrieval_config= rag.RagRetrievalConfig(
+                    top_k=RAG_SIMILARITY_TOP_K, 
+                    filter=rag.Filter(vector_similarity_threshold=RAG_VECTOR_SIMILARITY_THRESHOLD)
+                )
             ),
         )
     )
@@ -249,7 +258,7 @@ def update_source():
     rag_file = f"{corpus_name}/ragFiles/{rag_file_id}"
 
     app.logger.info(f"{event_id}: start deleting a rag file: {rag_file}")
-    rag.delete_file(rag_file)
+    rag.delete_file(rag_file, corpus_name=corpus_name)
     app.logger.info(f"{event_id}: finished deleting a rag file: {rag_file}")
 
     storage_client = storage.Client()
@@ -341,9 +350,11 @@ def generate_common_questions():
 
     prompt = """You are an AI assistant.
 
-    I want you to propose up to 5 common, simple questions based on the content.
-    Output the result in Japanese and print per question per line.
-    Each question should be one sentence and up to 30 characters long."""
+Propose up to 5 common questions based on the content, adhering to the following constraints:
+- The questions should be general and based on the PDF content.
+- Do not include any unnecessary prefixes or suffixes in the response (e.g., "Yes, I understand.").
+- Output the results in Japanese, with each question on a new line.
+- Each question should be a single sentence and no more than 30 characters long."""
 
     questions = []
     raw_questions = []
@@ -374,4 +385,3 @@ def generate_common_questions():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
-
