@@ -38,6 +38,7 @@ app.config.from_prefixed_env()
 # Global variables for Google Cloud SDK
 PROJECT_ID = ""
 VERTEX_AI_LOCATION = ""
+PUBLISHER_MODEL = "publishers/google/models/text-multilingual-embedding-002"
 GENERATIVE_MODEL_NAME = "gemini-2.0-flash-001"
 RAG_CHUNK_SIZE = 512
 RAG_CHUNK_OVERLAP = 100
@@ -94,8 +95,15 @@ def add_user():
     app.logger.info(f"{event_id}: start adding a user: {uid}")
 
     app.logger.info(f"{event_id}: start creating a rag corpus for a user: {uid}")
+
+    backend_config = rag.RagVectorDbConfig(
+        rag_embedding_model_config = rag.RagEmbeddingModelConfig(
+            rag.VertexPredictionEndpoint(publisher_model=PUBLISHER_MODEL)
+        )
+    )
     rag_corpus = rag.create_corpus(
         display_name=uid,
+        backend_config=backend_config
     )
     app.logger.info(f"{event_id}: finished creating a rag corpus for a user: {uid}")
     
