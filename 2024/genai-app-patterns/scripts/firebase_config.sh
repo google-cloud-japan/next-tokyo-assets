@@ -1,6 +1,6 @@
 #!/bin/bash
 
-APP_ID=$(firebase -j apps:list -P $GOOGLE_CLOUD_PROJECT | jq '.result[] | select(.displayName == "streamchat")' | jq -r '.appId')
+APP_ID=$(firebase -j apps:list -P $GOOGLE_CLOUD_PROJECT | jq '.result[] | select(.displayName == "ai-organizer")' | jq -r '.appId')
 TMP_FILE=firebaseConfig.json
 ENV_PATH=./src/knowledge-drive
 
