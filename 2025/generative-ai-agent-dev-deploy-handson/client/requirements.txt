@@ -1,1 +1,3 @@
 google-adk
+streamlit
+google-cloud-aiplatform
