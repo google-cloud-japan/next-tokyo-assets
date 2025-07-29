@@ -5,7 +5,7 @@ steps:
     args:
       - "-c"
       - |
-        pip install -r .requirements.txt && python3 -m app.agent_engine_app --project ${_PROJECT_ID} --agent-name ${_AGENT_NAME} --location ${_REGION}
+        pip install -r requirements.txt && python3 -m app.agent_engine_app --project ${_PROJECT_ID} --agent-name ${_AGENT_NAME} --location ${_REGION}
 
 substitutions:
   _PROJECT_ID: YOUR_PROJECT_ID
