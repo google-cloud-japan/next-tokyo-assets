@@ -1,0 +1,18 @@
+steps:
+  - name: "python:3.12"
+    id: deploy
+    entrypoint: /bin/bash
+    args:
+      - "-c"
+      - |
+        pip install -r .requirements.txt && python3 -m app.agent_engine_app --project ${_PROJECT_ID} --agent-name ${_AGENT_NAME} --location ${_REGION}
+
+substitutions:
+  _PROJECT_ID: YOUR_PROJECT_ID
+  _REGION: us-central1
+  _AGENT_NAME: my-first-agent
+
+logsBucket: gs://${PROJECT_ID}-sample-app-logs-data/build-logs
+options:
+  substitutionOption: ALLOW_LOOSE
+  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
