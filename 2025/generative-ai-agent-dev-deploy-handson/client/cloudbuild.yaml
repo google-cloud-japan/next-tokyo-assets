@@ -31,7 +31,6 @@ images:
   - 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_TAG}'
 
 substitutions:
-  _PROJECT_ID: gossy-workstations
   _SERVICE_NAME: client-agent
   _TAG: latest
   _REGION: us-central1
