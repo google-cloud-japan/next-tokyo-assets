@@ -4,14 +4,14 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_TAG}'
+      - 'gcr.io/${PROJECT_ID}/${_SERVICE_NAME}:${_TAG}'
       - '.'
 
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_TAG}'
+      - 'gcr.io/${PROJECT_ID}/${_SERVICE_NAME}:${_TAG}'
 
   # Deploy container image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -21,14 +21,14 @@ steps:
       - 'deploy'
       - '${_SERVICE_NAME}'
       - '--image'
-      - 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_TAG}'
+      - 'gcr.io/${PROJECT_ID}/${_SERVICE_NAME}:${_TAG}'
       - '--region'
       - '${_REGION}'
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
 images:
-  - 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_TAG}'
+  - 'gcr.io/${PROJECT_ID}/${_SERVICE_NAME}:${_TAG}'
 
 substitutions:
   _SERVICE_NAME: client-agent
