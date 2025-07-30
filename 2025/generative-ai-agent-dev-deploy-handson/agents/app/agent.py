@@ -29,7 +29,9 @@ def get_weather(query: str) -> str:
     """Simulates a web search. Use it get information on weather.
 
     Args:
-        query: A string containing the location to get weather information for.
+        query: A string containing the location to get weather information for. 
+                this query string must be english
+                ex.[Tokyo, New York]
 
     Returns:
         A string with the simulated weather information for the queried location.
@@ -43,8 +45,9 @@ def get_current_time(query: str) -> str:
     """Simulates getting the current time for a city.
 
     Args:
-        city: The name of the city to get the current time for.
-
+        city: The name of the city to get the current time for. ex.[Tokyo, New York]
+                this query string must be english
+                ex.[Tokyo, New York]
     Returns:
         A string with the current time information.
     """

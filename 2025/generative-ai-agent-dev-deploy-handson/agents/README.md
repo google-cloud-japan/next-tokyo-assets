@@ -15,3 +15,9 @@ gcloud builds submit . --config cloudbuild.yaml
 ```
 
 https://cloud.google.com/build/docs/triggers
+
+
+# evaluation
+```
+adk eval app/ app/simple_weather_eval_set.evalset.json --config_file_path=evaluations/test_config.json --print_detailed_results
+```
