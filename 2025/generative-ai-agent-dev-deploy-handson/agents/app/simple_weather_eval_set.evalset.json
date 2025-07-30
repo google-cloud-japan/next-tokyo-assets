@@ -1,0 +1,69 @@
+{
+  "eval_set_id": "simple_weather_eval_set",
+  "name": "simple_weather_eval_set",
+  "description": null,
+  "eval_cases": [
+    {
+      "eval_id": "tokyo-weather",
+      "conversation": [
+        {
+          "invocation_id": "e-dc37d2db-5c9b-493f-bce2-026abdf8eef5",
+          "user_content": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "今日の東京の天気は？"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "今日の東京の天気は90度で晴れです。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "id": "adk-ad0c975a-46fa-4e7c-ba57-58d4fb160592",
+                "args": {
+                  "query": "東京"
+                },
+                "name": "get_weather"
+              }
+            ],
+            "intermediate_responses": []
+          },
+          "creation_timestamp": 1753796821.661252
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "user",
+        "state": {}
+      },
+      "creation_timestamp": 1753796906.3080177
+    }
+  ],
+  "creation_timestamp": 1753796853.4680905
+}
