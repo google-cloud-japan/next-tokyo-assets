@@ -19,47 +19,34 @@
 
 まず、作業に必要な環境をセットアップします。
 
-### 2.1. `agents` ディレクトリのセットアップ
+### 2.1. `uv` のインストール (初回のみ)
+
+このチュートリアルでは、高速なPythonパッケージインストーラー `uv` を使用します。もし未インストールであれば、以下のコマンドを実行してください。
+
+```bash
+pip install uv
+```
+
+### 2.2. `agents` ディレクトリのセットアップ
 
 1.  `agents` ディレクトリに移動します。
     ```bash
     cd agents
     ```
 
-2.  `uv` を使ってPythonの仮想環境を作成し、必要なライブラリをインストールします。`uv`がインストールされていない場合は、先に `pip install uv` を実行してください。
+2.  `uv` を使ってPythonの仮想環境を作成し、必要なライブラリをインストールします。
     ```bash
     uv venv venv
     source venv/bin/activate
     uv pip install -r requirements.txt
     ```
-
-### 2.2. `client` ディレクトリのセットアップ
-
-1.  `client` ディレクトリに移動します。
-    ```bash
-    cd ../client
-    ```
-
-2.  同様に、`uv` を使ってPythonの仮想環境を作成し、ライブラリをインストールします。
-    ```bash
-    uv venv venv
-    source venv/bin/activate
-    uv pip install -r requirements.txt
-    ```
-
-3.  ルートディレクトリに戻ります。
-    ```bash
-    cd ..
-    ```
+    これで、エージェント開発用の環境が整いました。
 
 ## 3. Hello Agent をローカルで実行 (adk web)
 
 `adk web` を使うと、ローカルでエージェントの動作確認やデバッグが簡単に行えるWeb UIが起動します。
 
-1.  `agents` ディレクトリに移動します。
-    ```bash
-    cd agents
-    ```
+1.  `agents` ディレクトリにいること、そして仮想環境が有効になっていることを確認してください。
 
 2.  `adk web` コマンドを実行します。
     ```bash
@@ -68,6 +55,7 @@
 
 3.  ブラウザで `http://localhost:8080` を開くと、チャットUIが表示されます。ここでエージェントと対話し、動作を確認できます。
     "今日の東京の天気は？" などを入力して、エージェントが `get_weather` ツールを正しく呼び出すことを確認してください。
+    このUIは、エージェントの動作をリアルタイムで確認するのに非常に便利です。
 
 ## 4. Hello Agent を Cloud Build を使ってデプロイ
 
@@ -83,6 +71,7 @@
     このコマンドは、`app.agent_engine_app.py` を実行し、エージェントをVertex AI Agent Engineにデプロイします。
 
 3.  デプロイが完了すると、Google Cloudコンソールの Vertex AI > Agent Engine のページでデプロイされたエージェントが確認できます。
+    これで、あなたのエージェントがクラウド上で稼働を開始しました。
 
 ## 5. Evaluation をしてみる (adk eval)
 
@@ -95,6 +84,7 @@
     adk eval app/ app/simple_weather_eval_set.evalset.json --config_file_path=evaluations/test_config.json --print_detailed_results
     ```
     このコマンドは、`app/simple_weather_eval_set.evalset.json` に定義された対話例（"今日の東京の天気は？"など）をエージェントに実行させ、期待されるツールの呼び出しや最終的な応答がなされたかを評価します。
+    評価結果を確認し、エージェントが期待通りに動作しているかを確認しましょう。
 
 ## 6. Eval-set を作ってみる
 
@@ -105,6 +95,7 @@
 3.  対話が完了したら、UI上部にある「Save as Eval Case」ボタンをクリックします。
 4.  Eval ID（例：`sf-time`）を入力し、既存の `simple_weather_eval_set` に追加するか、新しいEval Setを作成します。
 5.  これにより、`app/simple_weather_eval_set.evalset.json` ファイルが更新され、新しい評価ケースが追加されます。
+    このようにして、対話的に評価ケースを拡充していくことができます。
 
 ## 7. Eval を Cloud Build に組み込む
 
@@ -117,14 +108,18 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
       - name: "python:3.12"
         id: deploy
         entrypoint: /bin/bash
+        env:
+          - 'PYTHONPATH=.'
         args:
           - "-c"
           - |
-            pip install uv && uv pip install --system -r requirements.txt && python3 -m app.agent_engine_app --project ${_PROJECT_ID} --agent-name ${_AGENT_NAME} --location ${_REGION}
+            pip install uv && uv pip install --system -r requirements.txt && python3 -m app.agent_engine_app --project ${PROJECT_ID} --agent-name ${_AGENT_NAME} --location ${_REGION} --requirements-file requirements.txt --extra-packages ./app
       
       - name: "python:3.12"
         id: eval
         entrypoint: /bin/bash
+        env:
+          - 'PYTHONPATH=.'
         args:
           - "-c"
           - |
@@ -132,7 +127,6 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
             adk eval app/ app/simple_weather_eval_set.evalset.json --config_file_path=evaluations/test_config.json
     
     substitutions:
-      _PROJECT_ID: YOUR_PROJECT_ID
       _REGION: us-central1
       _AGENT_NAME: my-first-agent
     
@@ -143,12 +137,23 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
     ```
 
 2.  変更を保存し、再度 `gcloud builds submit` を実行すると、デプロイ後に評価が自動的に実行されるようになります。
+    これにより、デプロイのたびに品質が保証されるようになります。
 
 ## 8. ローカルの Python Web App から Agent Engine を叩く
 
 `client` ディレクトリにあるStreamlit製のWebアプリケーションから、デプロイ済みのAgent Engineを呼び出します。
 
-1.  `client/webapp.py` を開き、`agent_engines.get()` の引数を、ご自身がデプロイしたエージェントのリソース名に書き換えます。リソース名は、デプロイ時のログやGoogle Cloudコンソールから確認できます。
+1.  **クライアント環境のセットアップ**:
+    `agents` ディレクトリから `client` ディレクトリに移動し、Webアプリケーション用の仮想環境をセットアップします。
+    ```bash
+    cd ../client
+    uv venv venv
+    source venv/bin/activate
+    uv pip install -r requirements.txt
+    ```
+
+2.  **エージェントの指定**:
+    `client/webapp.py` を開き、`agent_engines.get()` の引数を、ご自身がデプロイしたエージェントのリソース名に書き換えます。リソース名は、デプロイ時のログやGoogle Cloudコンソールの `Vertex AI > Agent Engine` のページから確認できます。
 
     ```python
     # client/webapp.py
@@ -160,14 +165,14 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
     # ... (省略) ...
     ```
 
-2.  `client` ディレクトリに移動し、仮想環境を有効にしてアプリを起動します。
+3.  **アプリケーションの起動**:
+    以下のコマンドでWebアプリを起動します。
     ```bash
-    cd ../client
-    source venv/bin/activate
     streamlit run webapp.py
     ```
 
-3.  ブラウザで表示されたWebアプリから、ユーザーIDとメッセージを入力してエージェントと対話できることを確認します。
+4.  ブラウザで表示されたWebアプリから、ユーザーIDとメッセージを入力してエージェントと対話できることを確認します。
+    これで、WebアプリケーションとAIエージェントの連携が確認できました。
 
 ## 9. Python Web App を Cloud Run にデプロイする
 
@@ -178,12 +183,13 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
 2.  以下のコマンドを実行して、Cloud Build経由でCloud Runにデプロイします。Cloud Build は、実行されているプロジェクトのIDを自動的に `PROJECT_ID` として利用します。
     ```bash
     gcloud builds submit . --config cloudbuild.yaml \
-        --substitutions=_SERVICE_NAME=client-agent,_REGION=us-central1
+        --substitutions=_SERVICE_NAME=client-agent,_REGION=us-central1,_TAG=latest
     ```
     このコマンドは、`Dockerfile` を使ってコンテナイメージをビルドし、Cloud Runにデプロイします。
 
 
 3.  デプロイが完了すると、出力に表示されるURLからWebアプリケーションにアクセスできます。
+    世界中のどこからでもアクセス可能なWebアプリケーションが完成しました。
 
 ## 10. Cloud Run に IAP を設定する
 
@@ -191,19 +197,19 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
 
 1.  **OAuth同意画面の設定**: まず、Google CloudコンソールでプロジェクトのOAuth同意画面を設定する必要があります（未設定の場合）。
 
-2.  **IAPを有効にする**: 以下のコマンドで、Cloud Runサービスを更新してIAPを有効にします。`[SERVICE_NAME]` はCloud Runのサービス名（例: `client-agent`）、`[PROJECT_ID]` を置き換えてください。
+2.  **IAPを有効にする**: 以下のコマンドで、Cloud Runサービスを更新してIAPを有効にします。`_SERVICE_NAME` はCloud Runのサービス名（例: `client-agent`）です。
     ```bash
-    gcloud run services update [SERVICE_NAME] \
-      --region=us-central1 \
-      --project=[PROJECT_ID] \
+    gcloud run services update ${_SERVICE_NAME} \
+      --region=${_REGION} \
+      --project=${PROJECT_ID} \
       --update-labels=cloud.googleapis.com/iap-enabled=true
     ```
 
 3.  **アクセス権限の付与**: IAP経由でのアクセスを許可したいユーザー（またはグループ、サービスアカウント）に `IAP-secured Web App User` ロールを付与します。
     ```bash
-    gcloud run services add-iam-policy-binding [SERVICE_NAME] \
-      --region=us-central1 \
-      --project=[PROJECT_ID] \
+    gcloud run services add-iam-policy-binding ${_SERVICE_NAME} \
+      --region=${_REGION} \
+      --project=${PROJECT_ID} \
       --member="user:[USER_EMAIL]" \
       --role="roles/iap.httpsResourceAccessor"
     ```
