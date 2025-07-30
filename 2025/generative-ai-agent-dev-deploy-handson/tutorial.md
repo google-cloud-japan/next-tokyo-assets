@@ -175,12 +175,13 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
 
 1.  `client` ディレクトリにいることを確認してください。
 
-2.  以下のコマンドを実行して、Cloud Build経由でCloud Runにデプロイします。`[YOUR_PROJECT_ID]` を置き換えてください。
+2.  以下のコマンドを実行して、Cloud Build経由でCloud Runにデプロイします。Cloud Build は、実行されているプロジェクトのIDを自動的に `PROJECT_ID` として利用します。
     ```bash
     gcloud builds submit . --config cloudbuild.yaml \
-        --substitutions=_PROJECT_ID=[YOUR_PROJECT_ID],_SERVICE_NAME=client-agent,_REGION=us-central1
+        --substitutions=_SERVICE_NAME=client-agent,_REGION=us-central1
     ```
     このコマンドは、`Dockerfile` を使ってコンテナイメージをビルドし、Cloud Runにデプロイします。
+
 
 3.  デプロイが完了すると、出力に表示されるURLからWebアプリケーションにアクセスできます。
 
