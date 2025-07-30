@@ -26,11 +26,11 @@
     cd agents
     ```
 
-2.  Pythonの仮想環境を作成し、必要なライブラリをインストールします。
+2.  `uv` を使ってPythonの仮想環境を作成し、必要なライブラリをインストールします。`uv`がインストールされていない場合は、先に `pip install uv` を実行してください。
     ```bash
-    python3 -m venv venv
+    uv venv venv
     source venv/bin/activate
-    pip install -r requirements.txt
+    uv pip install -r requirements.txt
     ```
 
 ### 2.2. `client` ディレクトリのセットアップ
@@ -40,11 +40,11 @@
     cd ../client
     ```
 
-2.  同様に、Pythonの仮想環境を作成し、ライブラリをインストールします。
+2.  同様に、`uv` を使ってPythonの仮想環境を作成し、ライブラリをインストールします。
     ```bash
-    python3 -m venv venv
+    uv venv venv
     source venv/bin/activate
-    pip install -r requirements.txt
+    uv pip install -r requirements.txt
     ```
 
 3.  ルートディレクトリに戻ります。
@@ -120,7 +120,7 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
         args:
           - "-c"
           - |
-            pip install -r requirements.txt && python3 -m app.agent_engine_app --project ${_PROJECT_ID} --agent-name ${_AGENT_NAME} --location ${_REGION}
+            pip install uv && uv pip install --system -r requirements.txt && python3 -m app.agent_engine_app --project ${_PROJECT_ID} --agent-name ${_AGENT_NAME} --location ${_REGION}
       
       - name: "python:3.12"
         id: eval
@@ -128,7 +128,7 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
         args:
           - "-c"
           - |
-            pip install -r requirements.txt
+            pip install uv && uv pip install --system -r requirements.txt
             adk eval app/ app/simple_weather_eval_set.evalset.json --config_file_path=evaluations/test_config.json
     
     substitutions:

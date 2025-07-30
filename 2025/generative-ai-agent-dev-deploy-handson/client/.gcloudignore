@@ -1,0 +1,20 @@
+# .gcloudignore
+
+# Python virtual environment
+venv/
+.venv/
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Git directory
+.git/
+
+# IDE settings
+.idea/
+.vscode/
+
+# Other caches and logs
+.pytest_cache/
+.DS_Store
