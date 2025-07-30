@@ -93,26 +93,6 @@ This document serves as a long-form, comprehensive reference for building, orche
 
 A well-structured ADK project is crucial for maintainability and leveraging `adk` CLI tools.
 
-```
-your_project_root/
-├── my_first_agent/             # Each folder is a distinct agent app
-│   ├── __init__.py             # Makes `my_first_agent` a Python package (`from . import agent`)
-│   ├── agent.py                # Contains `root_agent` definition and `LlmAgent`/WorkflowAgent instances
-│   ├── tools.py                # Custom tool function definitions
-│   ├── data/                   # Optional: static data, templates
-│   └── .env                    # Environment variables (API keys, project IDs)
-├── my_second_agent/
-│   ├── __init__.py
-│   └── agent.py
-├── requirements.txt            # Project's Python dependencies (e.g., google-adk, litellm)
-├── tests/                      # Unit and integration tests
-│   ├── unit/
-│   │   └── test_tools.py
-│   └── integration/
-│       └── test_my_first_agent.py
-│       └── my_first_agent.evalset.json # Evaluation dataset for `adk eval`
-└── main.py                     # Optional: Entry point for custom FastAPI server deployment
-```
 *   `adk web` and `adk run` automatically discover agents in subdirectories with `__init__.py` and `agent.py`.
 *   `.env` files are automatically loaded by `adk` tools when run from the root or agent directory.
 
