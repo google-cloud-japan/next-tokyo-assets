@@ -172,7 +172,6 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
       _REGION: us-central1
       _AGENT_NAME: my-first-agent
     
-    logsBucket: gs://${PROJECT_ID}-sample-app-logs-data/build-logs
     options:
       substitutionOption: ALLOW_LOOSE
       defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
@@ -180,6 +179,10 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
 
 2.  変更を保存し、再度 `gcloud builds submit` を実行すると、デプロイ後に評価が自動的に実行されるようになります。
     **この処理も数分かかります。** 待ち時間に、先ほど編集した `agents/cloudbuild.yaml` を見返し、`eval` ステップがどのように追加されたかを確認してみましょう。
+    ```bash
+    gcloud builds submit . --config cloudbuild.yaml \
+         --substitutions=_REGION=us-central1,_AGENT_NAME=my-awesome-agent
+    ```
     これにより、デプロイのたびに品質が保証されるようになります。
 
 ### 7.1. 評価の失敗を体験する
