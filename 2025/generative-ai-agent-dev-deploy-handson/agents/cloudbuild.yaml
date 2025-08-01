@@ -1,0 +1,19 @@
+steps:
+  - name: "python:3.12"
+    id: deploy
+    entrypoint: /bin/bash
+    env:
+      - 'PYTHONPATH=.'
+    args:
+      - "-c"
+      - |
+        pip install uv && uv pip install --system -r requirements.txt && python3 -m app.agent_engine_app --project ${PROJECT_ID} --agent-name ${_AGENT_NAME} --location ${_REGION} --requirements-file requirements.txt --extra-packages ./app
+
+substitutions:
+  _REGION: us-central1
+  _AGENT_NAME: my-first-agent
+
+logsBucket: gs://${PROJECT_ID}-sample-app-logs-data/build-logs
+options:
+  substitutionOption: ALLOW_LOOSE
+  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET

@@ -1,0 +1,130 @@
+{
+  "eval_set_id": "simple_weather_eval_set",
+  "name": "simple_weather_eval_set",
+  "description": null,
+  "eval_cases": [
+    {
+      "eval_id": "tokyo-weather",
+      "conversation": [
+        {
+          "invocation_id": "e-dc37d2db-5c9b-493f-bce2-026abdf8eef5",
+          "user_content": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "今日の東京の天気は？"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "今日の東京の天気は90度で晴れです。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "id": "adk-ad0c975a-46fa-4e7c-ba57-58d4fb160592",
+                "args": {
+                  "query": "Tokyo"
+                },
+                "name": "get_weather"
+              }
+            ],
+            "intermediate_responses": []
+          },
+          "creation_timestamp": 1753796821.661252
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "user",
+        "state": {}
+      },
+      "creation_timestamp": 1753796906.3080177
+    },
+    {
+      "eval_id": "nyc-weather",
+      "conversation": [
+        {
+          "invocation_id": "e-a6c0e0bc-5fc4-4c37-818a-c08a996fc12d",
+          "user_content": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "今日のニューヨークの天気は？"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "ニューヨークの天気は90度、晴れです。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "id": "adk-f8d7fdfd-1000-494b-97f3-9696199b99c6",
+                "args": {
+                  "query": "New York"
+                },
+                "name": "get_weather"
+              }
+            ],
+            "intermediate_responses": []
+          },
+          "creation_timestamp": 1753841572.683477
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "user",
+        "state": {}
+      },
+      "creation_timestamp": 1753841598.993654
+    }
+  ],
+  "creation_timestamp": 1753796853.4680905
+}

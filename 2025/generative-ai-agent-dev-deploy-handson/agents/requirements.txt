@@ -1,0 +1,10 @@
+google-adk==1.8.0
+google-adk[eval]
+google-auth
+google-cloud-aiplatform
+google-cloud-logging
+google-cloud-storage
+opentelemetry-sdk
+opentelemetry-exporter-gcp-trace
+pandas
+pydantic
