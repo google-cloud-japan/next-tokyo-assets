@@ -53,9 +53,13 @@ pip install uv
     adk web .
     ```
 
-3.  ブラウザで `http://localhost:8080` を開くと、チャットUIが表示されます。ここでエージェントと対話し、動作を確認できます。
+3.  Cloud Shellで実行している場合、コマンド実行後に表示されるWebプレビューのURLを `Ctrl` (Macの場合は `Cmd`) を押しながらクリックしてUIを開きます。ローカル環境の場合は、ブラウザで `http://localhost:8080` を開きます。
+    UIが表示されたら、左上のプルダウンメニューから `app` を選択します。
+    チャットUIが表示されますので、ここでエージェントと対話し、動作を確認できます。
     "今日の東京の天気は？" などを入力して、エージェントが `get_weather` ツールを正しく呼び出すことを確認してください。
     このUIは、エージェントの動作をリアルタイムで確認するのに非常に便利です。
+
+動作確認が終わったら、ターミナルで `Ctrl+C` を押して `adk web` プロセスを停止してください。
 
 ## 4. Hello Agent を Cloud Build を使ってデプロイ
 
@@ -69,6 +73,7 @@ pip install uv
          --substitutions=_PROJECT_ID=[YOUR_PROJECT_ID],_REGION=us-central1,_AGENT_NAME=my-awesome-agent
     ```
     このコマンドは、`app.agent_engine_app.py` を実行し、エージェントをVertex AI Agent Engineにデプロイします。
+    **実行には数分かかります。** 待ち時間の間、デプロイされるエージェントの実装 (`agents/app/agent.py`) や、デプロイ処理を定義しているスクリプト (`agents/app/agent_engine_app.py`) の中身を確認してみましょう。
 
 3.  デプロイが完了すると、Google Cloudコンソールの Vertex AI > Agent Engine のページでデプロイされたエージェントが確認できます。
     これで、あなたのエージェントがクラウド上で稼働を開始しました。
@@ -88,14 +93,22 @@ pip install uv
 
 ## 6. Eval-set を作ってみる
 
-`adk web` のUIから、新しい評価セットを対話的に作成できます。
+`adk web` のUIを使い、対話的に新しい評価ケースを作成し、既存の評価セットに追加します。
 
-1.  `adk web .` が実行中であることを確認し、ブラウザでUIを開きます。
-2.  エージェントと新しい対話を行います（例：「サンフランシスコの今の時間は？」）。
-3.  対話が完了したら、UI上部にある「Save as Eval Case」ボタンをクリックします。
-4.  Eval ID（例：`sf-time`）を入力し、既存の `simple_weather_eval_set` に追加するか、新しいEval Setを作成します。
-5.  これにより、`app/simple_weather_eval_set.evalset.json` ファイルが更新され、新しい評価ケースが追加されます。
-    このようにして、対話的に評価ケースを拡充していくことができます。
+1.  まず、`adk web` を再度起動します。
+    ```bash
+    adk web .
+    ```
+2.  Cloud ShellまたはブラウザでUIを開き、左上のプルダウンメニューから `app` を選択します。
+3.  エージェントと新しい対話を行います（例：「サンフランシスコの今の時間は？」）。
+4.  対話が完了したら、画面上部の **`Evals`** タブに移動します。
+5.  左側の `Eval Sets` パネルから **`simple_weather_eval_set`** を選択します。
+6.  **`Save Last Chat as Eval Case`** ボタンをクリックします。
+7.  `Eval ID` に `sf-time` のような一意のIDを入力し、`Save` ボタンをクリックします。
+8.  `app/simple_weather_eval_set.evalset.json` ファイルが更新され、新しい評価ケースが追加されたことを確認できます。
+9.  UI上で **`Run Evaluation`** ボタンをクリックすると、更新された評価セットで即座に評価を実行できます。結果が画面に表示されることを確認してください。
+
+評価セットの作成と実行が完了したら、ターミナルで `Ctrl+C` を押して `adk web` プロセスを停止してください。
 
 ## 7. Eval を Cloud Build に組み込む
 
@@ -106,16 +119,6 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
     ```yaml
     steps:
       - name: "python:3.12"
-        id: deploy
-        entrypoint: /bin/bash
-        env:
-          - 'PYTHONPATH=.'
-        args:
-          - "-c"
-          - |
-            pip install uv && uv pip install --system -r requirements.txt && python3 -m app.agent_engine_app --project ${PROJECT_ID} --agent-name ${_AGENT_NAME} --location ${_REGION} --requirements-file requirements.txt --extra-packages ./app
-      
-      - name: "python:3.12"
         id: eval
         entrypoint: /bin/bash
         env:
@@ -124,7 +127,20 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
           - "-c"
           - |
             pip install uv && uv pip install --system -r requirements.txt
-            adk eval app/ app/simple_weather_eval_set.evalset.json --config_file_path=evaluations/test_config.json
+            adk eval app/ app/simple_weather_eval_set.evalset.json --config_file_path=evaluations/test_config.json | tee eval_output.log
+            if grep -q "Tests failed: [1-9][0-9]*" eval_output.log; then
+              echo "Evaluation failed."
+              exit 1
+            fi
+      - name: "python:3.12"
+        id: deploy
+        entrypoint: /bin/bash
+        env:
+          - 'PYTHONPATH=.'
+        args:
+          - "-c"
+          - |
+            pip install uv && uv pip install --system -r requirements.txt && python3 -m app.agent_engine_app --project ${PROJECT_ID} --agent-name ${_AGENT_NAME} --location ${_REGION} --requirements-file requirements.txt --extra-packages ./app
     
     substitutions:
       _REGION: us-central1
@@ -137,6 +153,7 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
     ```
 
 2.  変更を保存し、再度 `gcloud builds submit` を実行すると、デプロイ後に評価が自動的に実行されるようになります。
+    **この処理も数分かかります。** 待ち時間に、先ほど編集した `agents/cloudbuild.yaml` を見返し、`eval` ステップがどのように追加されたかを確認してみましょう。
     これにより、デプロイのたびに品質が保証されるようになります。
 
 ## 8. ローカルの Python Web App から Agent Engine を叩く
@@ -186,6 +203,7 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
         --substitutions=_SERVICE_NAME=client-agent,_REGION=us-central1,_TAG=latest
     ```
     このコマンドは、`Dockerfile` を使ってコンテナイメージをビルドし、Cloud Runにデプロイします。
+    **デプロイには数分かかります。** 待ち時間に、Webアプリケーション本体のコード (`client/webapp.py`) や、コンテナの定義ファイル (`client/Dockerfile`) を読んで、どのような処理が行われているか確認してみましょう。
 
 
 3.  デプロイが完了すると、出力に表示されるURLからWebアプリケーションにアクセスできます。
