@@ -27,7 +27,6 @@ substitutions:
   _REGION: us-central1
   _AGENT_NAME: my-first-agent
 
-logsBucket: gs://${PROJECT_ID}-sample-app-logs-data/build-logs
 options:
   substitutionOption: ALLOW_LOOSE
   defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
