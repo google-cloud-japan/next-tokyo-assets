@@ -19,7 +19,22 @@
 
 まず、作業に必要な環境をセットアップします。
 
-### 2.1. `uv` のインストール (初回のみ)
+### 2.1. Google Cloud APIの有効化
+
+このハンズオンで利用する各種Google Cloud APIを有効にします。
+
+```bash
+gcloud services enable \
+  aiplatform.googleapis.com \
+  cloudbuild.googleapis.com \
+  storage.googleapis.com \
+  run.googleapis.com \
+  containerregistry.googleapis.com \
+  iap.googleapis.com
+```
+
+
+### 2.2. `uv` のインストール (初回のみ)
 
 このチュートリアルでは、高速なPythonパッケージインストーラー `uv` を使用します。もし未インストールであれば、以下のコマンドを実行してください。
 
