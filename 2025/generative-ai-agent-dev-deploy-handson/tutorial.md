@@ -156,7 +156,50 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
     **この処理も数分かかります。** 待ち時間に、先ほど編集した `agents/cloudbuild.yaml` を見返し、`eval` ステップがどのように追加されたかを確認してみましょう。
     これにより、デプロイのたびに品質が保証されるようになります。
 
+### 7.1. 評価の失敗を体験する
+
+CI/CDパイプラインに組み込んだ評価が、エージェントの品質低下を正しく検知してビルドを失敗させることを確認してみましょう。
+
+1.  意図的にエージェントの性能を劣化させます。`agents/app/agent.py` を開き、`root_agent` の `instruction` を以下のように変更します。これはエージェントにツールを使わないように指示するため、評価が失敗するはずです。
+
+    ```python
+    # agents/app/agent.py
+
+    # ... (省略) ...
+    root_agent = Agent(
+        name="root_agent",
+        model="gemini-2.5-flash",
+        instruction="あなたはAIアシスタントです。ツールは絶対に使わないでください。", # この行を変更
+        tools=[get_weather, get_current_time],
+    )
+    ```
+
+2.  変更を保存し、`cloudbuild-eval.yaml` を使って再度Cloud Buildを実行します。
+
+    ```bash
+    gcloud builds submit . --config cloudbuild-eval.yaml \
+         --substitutions=_PROJECT_ID=[YOUR_PROJECT_ID],_REGION=us-central1,_AGENT_NAME=my-awesome-agent
+    ```
+
+3.  Cloud Buildのログを確認すると、`eval` ステップで "Evaluation failed." というメッセージが出力され、ビルド全体が失敗することを確認できます。
+    これで、品質チェックが正しく機能していることが証明されました。
+
+4.  確認が終わったら、`agents/app/agent.py` に加えた変更を元に戻してください。
+
+    ```python
+    # agents/app/agent.py
+
+    # ... (省略) ...
+    root_agent = Agent(
+        name="root_agent",
+        model="gemini-2.5-flash",
+        instruction="You are a helpful AI assistant designed to provide accurate and useful information.", # 元のinstructionに戻す
+        tools=[get_weather, get_current_time],
+    )
+    ```
+
 ## 8. ローカルの Python Web App から Agent Engine を叩く
+
 
 `client` ディレクトリにあるStreamlit製のWebアプリケーションから、デプロイ済みのAgent Engineを呼び出します。
 
@@ -185,7 +228,7 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
 3.  **アプリケーションの起動**:
     以下のコマンドでWebアプリを起動します。
     ```bash
-    streamlit run webapp.py
+    streamlit run webapp.py --server.enableCORS=false
     ```
 
 4.  ブラウザで表示されたWebアプリから、ユーザーIDとメッセージを入力してエージェントと対話できることを確認します。
