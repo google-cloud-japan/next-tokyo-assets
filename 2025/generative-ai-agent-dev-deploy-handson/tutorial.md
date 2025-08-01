@@ -70,7 +70,7 @@ pip install uv
 2.  以下のコマンドを実行して、Cloud Build をトリガーします。`[YOUR_PROJECT_ID]` はご自身のGoogle CloudプロジェクトIDに置き換えてください。
     ```bash
     gcloud builds submit . --config cloudbuild.yaml \
-         --substitutions=_PROJECT_ID=[YOUR_PROJECT_ID],_REGION=us-central1,_AGENT_NAME=my-awesome-agent
+         --substitutions=_REGION=us-central1,_AGENT_NAME=my-awesome-agent
     ```
     このコマンドは、`app.agent_engine_app.py` を実行し、エージェントをVertex AI Agent Engineにデプロイします。
     **実行には数分かかります。** 待ち時間の間、デプロイされるエージェントの実装 (`agents/app/agent.py`) や、デプロイ処理を定義しているスクリプト (`agents/app/agent_engine_app.py`) の中身を確認してみましょう。
@@ -178,7 +178,7 @@ CI/CDパイプラインに組み込んだ評価が、エージェントの品質
 
     ```bash
     gcloud builds submit . --config cloudbuild-eval.yaml \
-         --substitutions=_PROJECT_ID=[YOUR_PROJECT_ID],_REGION=us-central1,_AGENT_NAME=my-awesome-agent
+         --substitutions=_REGION=us-central1,_AGENT_NAME=my-awesome-agent
     ```
 
 3.  Cloud Buildのログを確認すると、`eval` ステップで "Evaluation failed." というメッセージが出力され、ビルド全体が失敗することを確認できます。
@@ -230,6 +230,7 @@ CI/CDパイプラインに組み込んだ評価が、エージェントの品質
     ```bash
     streamlit run webapp.py --server.enableCORS=false
     ```
+    コマンド実行後、Webアプリの画面がブラウザに表示されるまで少し時間がかかる場合があります。
 
 4.  ブラウザで表示されたWebアプリから、ユーザーIDとメッセージを入力してエージェントと対話できることを確認します。
     これで、WebアプリケーションとAIエージェントの連携が確認できました。
@@ -260,19 +261,19 @@ CI/CDパイプラインに組み込んだ評価が、エージェントの品質
 
 2.  **IAPを有効にする**: 以下のコマンドで、Cloud Runサービスを更新してIAPを有効にします。`_SERVICE_NAME` はCloud Runのサービス名（例: `client-agent`）です。
     ```bash
-    gcloud run services update ${_SERVICE_NAME} \
-      --region=${_REGION} \
-      --project=${PROJECT_ID} \
-      --update-labels=cloud.googleapis.com/iap-enabled=true
+    gcloud beta run services update client-agent \
+      --region="us-central1" \
+      --iap
     ```
 
 3.  **アクセス権限の付与**: IAP経由でのアクセスを許可したいユーザー（またはグループ、サービスアカウント）に `IAP-secured Web App User` ロールを付与します。
     ```bash
-    gcloud run services add-iam-policy-binding ${_SERVICE_NAME} \
-      --region=${_REGION} \
-      --project=${PROJECT_ID} \
-      --member="user:[USER_EMAIL]" \
-      --role="roles/iap.httpsResourceAccessor"
+    gcloud beta iap web add-iam-policy-binding \
+      --member=user:[USER_EMAIL] \
+      --role=roles/iap.httpsResourceAccessor \
+      --region=us-central1 \
+      --resource-type=cloud-run \
+      --service=client-agent
     ```
     `[USER_EMAIL]` にはアクセスを許可したいユーザーのメールアドレスを指定します。
 
