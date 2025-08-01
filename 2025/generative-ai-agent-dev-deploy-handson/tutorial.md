@@ -19,7 +19,16 @@
 
 まず、作業に必要な環境をセットアップします。
 
-### 2.1. Google Cloud APIの有効化
+### 2.1. Google Cloud プロジェクトの設定
+
+gcloud コマンドラインツールが正しいプロジェクトを指していることを確認します。
+`YOUR_PROJECT_ID` をご自身のプロジェクトIDに置き換えて実行してください。
+
+```bash
+gcloud config set project YOUR_PROJECT_ID
+```
+
+### 2.2. Google Cloud APIの有効化
 
 このハンズオンで利用する各種Google Cloud APIを有効にします。
 
@@ -34,7 +43,7 @@ gcloud services enable \
 ```
 
 
-### 2.2. `uv` のインストール (初回のみ)
+### 2.3. `uv` のインストール (初回のみ)
 
 このチュートリアルでは、高速なPythonパッケージインストーラー `uv` を使用します。もし未インストールであれば、以下のコマンドを実行してください。
 
@@ -42,7 +51,7 @@ gcloud services enable \
 pip install uv
 ```
 
-### 2.2. `agents` ディレクトリのセットアップ
+### 2.4. `agents` ディレクトリのセットアップ
 
 1.  `agents` ディレクトリに移動します。
     ```bash
@@ -82,7 +91,7 @@ pip install uv
 
 1.  `agents` ディレクトリにいることを確認してください。
 
-2.  以下のコマンドを実行して、Cloud Build をトリガーします。`[YOUR_PROJECT_ID]` はご自身のGoogle CloudプロジェクトIDに置き換えてください。
+2.  以下のコマンドを実行して、Cloud Build をトリガーします。
     ```bash
     gcloud builds submit . --config cloudbuild.yaml \
          --substitutions=_REGION=us-central1,_AGENT_NAME=my-awesome-agent
@@ -92,6 +101,8 @@ pip install uv
 
 3.  デプロイが完了すると、Google Cloudコンソールの Vertex AI > Agent Engine のページでデプロイされたエージェントが確認できます。
     これで、あなたのエージェントがクラウド上で稼働を開始しました。
+
+
 
 ## 5. Evaluation をしてみる (adk eval)
 
