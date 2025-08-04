@@ -26,44 +26,44 @@ os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "True")
 
 
 def get_weather(query: str) -> str:
-    """Simulates a web search. Use it get information on weather.
+    """ウェブ検索をシミュレートします。天気に関する情報を取得するために使用します。
 
     Args:
-        query: A string containing the location to get weather information for. 
-                this query string must be english
-                ex.[Tokyo, New York]
+        query: 天気情報を取得する場所を含む文字列。
+                このクエリ文字列は英語である必要があります。
+                例: [Tokyo, New York]
 
     Returns:
-        A string with the simulated weather information for the queried location.
+        照会された場所のシミュレートされた天気情報を含む文字列。
     """
     if "sf" in query.lower() or "san francisco" in query.lower():
-        return "It's 60 degrees and foggy."
-    return "It's 90 degrees and sunny."
+        return "気温は60度で霧がかかっています。"
+    return "気温は90度で晴れです。"
 
 
 def get_current_time(query: str) -> str:
-    """Simulates getting the current time for a city.
+    """都市の現在時刻の取得をシミュレートします。
 
     Args:
-        city: The name of the city to get the current time for. ex.[Tokyo, New York]
-                this query string must be english
-                ex.[Tokyo, New York]
+        city: 現在時刻を取得する都市の名前。
+                このクエリ文字列は英語である必要があります。
+                例: [san francisco]
     Returns:
-        A string with the current time information.
+        現在の時刻情報を含む文字列。
     """
     if "sf" in query.lower() or "san francisco" in query.lower():
         tz_identifier = "America/Los_Angeles"
     else:
-        return f"Sorry, I don't have timezone information for query: {query}."
+        return f"申し訳ありませんが、クエリのタイムゾーン情報がありません: {query}。"
 
     tz = ZoneInfo(tz_identifier)
     now = datetime.datetime.now(tz)
-    return f"The current time for query {query} is {now.strftime('%Y-%m-%d %H:%M:%S %Z%z')}"
+    return f"クエリ {query} の現在の時刻は {now.strftime('%Y-%m-%d %H:%M:%S %Z%z')} です"
 
 
 root_agent = Agent(
     name="root_agent",
     model="gemini-2.5-flash",
-    instruction="You are a helpful AI assistant designed to provide accurate and useful information.",
+    instruction="あなたは、正確で役立つ情報を提供するために設計された、親切なAIアシスタントです。",
     tools=[get_weather, get_current_time],
 )
