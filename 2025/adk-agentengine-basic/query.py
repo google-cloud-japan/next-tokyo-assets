@@ -7,11 +7,10 @@ import sys
 import argparse
 
 from vertexai import agent_engines
-from vertexai.generative_models._generative_models import Content
 
 # --- 定数定義 ---
 USER_ID = "test_user01"
-TARGET_AUTHOR = "podcast_creator"
+TARGET_AUTHORS = ["podcast_creator", "learning_assistant",]
 
 # --- カスタム例外定義 ---
 class AgentEngineError(Exception):
@@ -72,11 +71,13 @@ def stream_agent_query(agent: agent_engines.AgentEngine, message: str) -> None:
     print("\n--- エージェントからのレスポンス ---\n")
     for event in response_stream:
         try:
-            if event.get("author") != TARGET_AUTHOR:
+            if event.get("author") not in TARGET_AUTHORS:
+                continue
+            
+            text = event["content"]["parts"][0]["text"]
+            if not text:
                 continue
 
-            content: Content = event["content"]
-            text = content.parts[0].text
             print(text, end="", flush=True)
 
         except (KeyError, IndexError, TypeError, AttributeError):
