@@ -1,0 +1,219 @@
+{
+  "eval_set_id": "weather_with_state",
+  "name": "weather_with_state",
+  "description": null,
+  "eval_cases": [
+    {
+      "eval_id": "tokyo&preference",
+      "conversation": [
+        {
+          "invocation_id": "e-05f838f6-07e6-44fe-ab3d-9daa42fbcb51",
+          "user_content": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "今日の東京の天気は？"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "今日の東京の天気は雨で、気温は18°Cです。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "id": "adk-c6a6414b-a9e6-4c20-afab-e2a9a57e5e47",
+                "args": {
+                  "city": "東京"
+                },
+                "name": "get_weather_stateful"
+              }
+            ],
+            "intermediate_responses": []
+          },
+          "creation_timestamp": 1754275610.53769
+        },
+        {
+          "invocation_id": "e-5a85d014-884b-4429-86b3-6c522ba19b5a",
+          "user_content": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "ニューヨークは？"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "ニューヨークの天気は晴れで、気温は25°Cです。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "id": "adk-ddf3ca7b-f977-447f-a0b1-7bb0303ff604",
+                "args": {
+                  "city": "ニューヨーク"
+                },
+                "name": "get_weather_stateful"
+              }
+            ],
+            "intermediate_responses": []
+          },
+          "creation_timestamp": 1754275647.971408
+        },
+        {
+          "invocation_id": "e-891fc9ef-cd52-4a0a-8160-1cb41177efa3",
+          "user_content": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "これからは気温を華氏で教えてください"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "承知いたしました。今後は気温を華氏でお伝えします。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "id": "adk-c8ccff74-15db-4c67-a887-e295296a910f",
+                "args": {
+                  "unit": "Fahrenheit"
+                },
+                "name": "set_temperature_preference"
+              }
+            ],
+            "intermediate_responses": []
+          },
+          "creation_timestamp": 1754275670.908034
+        },
+        {
+          "invocation_id": "e-1cc3d9e1-6400-49af-934f-5ce84d0e6a51",
+          "user_content": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "改めて東京は？"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "video_metadata": null,
+                "thought": null,
+                "inline_data": null,
+                "file_data": null,
+                "thought_signature": null,
+                "code_execution_result": null,
+                "executable_code": null,
+                "function_call": null,
+                "function_response": null,
+                "text": "東京の天気は雨で、気温は64°Fです。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "id": "adk-518e4a9e-0952-41ec-9f63-c3863b9a621b",
+                "args": {
+                  "city": "東京"
+                },
+                "name": "get_weather_stateful"
+              }
+            ],
+            "intermediate_responses": []
+          },
+          "creation_timestamp": 1754275684.486249
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "user",
+        "state": {}
+      },
+      "creation_timestamp": 1754275835.2861414
+    }
+  ],
+  "creation_timestamp": 1754275820.4302356
+}
