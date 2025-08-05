@@ -45,5 +45,5 @@ root_agent = Agent(
     name="root_agent",
     model="gemini-2.5-flash",
     instruction="あなたは、正確で役立つ情報を提供するために設計された、親切なAIアシスタントです。",
-    tools=[get_weather, get_current_time],
+    tools=[get_weather],
 )
