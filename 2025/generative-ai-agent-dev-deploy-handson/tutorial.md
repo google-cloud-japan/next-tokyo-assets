@@ -297,14 +297,14 @@ CI/CDパイプラインに組み込んだ評価が、エージェントの品質
 
 最後に、デプロイしたWebアプリケーションにIAPを設定して、認証されたユーザーのみがアクセスできるようにします。
 
-1.  **OAuth同意画面の設定**: まず、Google CloudコンソールでプロジェクトのOAuth同意画面を設定する必要があります（未設定の場合）。
-
-2.  **IAPを有効にする**: 以下のコマンドで、Cloud Runサービスを更新してIAPを有効にします。`_SERVICE_NAME` はCloud Runのサービス名（例: `client-agent`）です。
+1.  **IAPを有効にする**: 以下のコマンドで、Cloud Runサービスを更新してIAPを有効にします。`_SERVICE_NAME` はCloud Runのサービス名（例: `client-agent`）です。
     ```bash
     gcloud beta run services update client-agent \
       --region="us-central1" \
       --iap
     ```
+
+2. **認証がかかっていることを確認する**: さきほどデプロイした Cloud run の url にアクセスします。
 
 3.  **アクセス権限の付与**: IAP経由でのアクセスを許可したいユーザー（またはグループ、サービスアカウント）に `IAP-secured Web App User` ロールを付与します。
     ```bash
@@ -322,3 +322,36 @@ CI/CDパイプラインに組み込んだ評価が、エージェントの品質
 ## 11. おわりに
 
 このチュートリアルでは、Generative AI Agentの開発からデプロイ、評価、Webアプリへの統合、そしてセキュリティ設定まで、一連のライフサイクルを体験しました。ここからさらに、エージェントの能力を拡張したり、より複雑なワークフローを構築したりすることに挑戦してみてください。
+
+### 11.1 おまけ：Stateful Agentを試す
+
+このハンズオンには、会話の状態を記憶できる `agent_stateful.py` が含まれています。
+`adk web` を使って、このエージェントの動作をローカルで確認してみましょう。
+1.  agents フォルダに移動します
+    ```bash
+    cd ../agents
+    source venv/bin/activate
+    ```
+2.  `app/__init__.py` ファイルを開きます。
+
+3.  インポートするエージェントを `agent.py` から `agent_stateful.py` に変更します。
+
+    ```python
+    # agents/app/__init__.py
+
+    # from .agent import root_agent  # この行をコメントアウト
+    from .agent_stateful import root_agent
+    ```
+
+4.  `agents` ディレクトリで `adk web` を実行します。
+    ```bash
+    adk web .
+    ```
+
+5.  Web UIで、以下のよう順番に対話を試してみてください。
+    - **"今日の東京の天気は？"** 
+    - **"これからは気温を摂氏で教えてください"**
+    - **"改めて東京は？"**
+
+このように、`agent_stateful.py` は `ToolContext` を使ってセッション内に状態（この場合は温度の単位）を保存し、次の応答に活かすことができます。
+確認が終わったら、`__init__.py` の変更を元に戻しておきましょう。
