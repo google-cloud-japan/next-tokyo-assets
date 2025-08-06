@@ -4,7 +4,7 @@ from google.adk.tools.mcp_tool import StdioConnectionParams
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset
 from mcp import StdioServerParameters
 
-MODEL_GEMINI_2_5_PRO="gemini-2.5-PRO"
+MODEL_GEMINI_2_5_PRO="gemini-2.5-pro"
 MODEL_GEMINI_2_5_FLASH="gemini-2.5-flash"
 MODEL_GEMINI_2_5_FLASH_LITE="gemini-2.5-flash-lite"
 MODEL_GEMINI_2_5_FLASH_PREVIEW_TTS="gemini-2.5-flash-preview-tts"
