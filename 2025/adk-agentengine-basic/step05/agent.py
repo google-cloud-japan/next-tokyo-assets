@@ -7,7 +7,7 @@ from mcp import StdioServerParameters
 
 from .tools import podcast_speaker
 
-MODEL_GEMINI_2_5_PRO="gemini-2.5-PRO"
+MODEL_GEMINI_2_5_PRO="gemini-2.5-pro"
 MODEL_GEMINI_2_5_FLASH="gemini-2.5-flash"
 MODEL_GEMINI_2_5_FLASH_LITE="gemini-2.5-flash-lite"
 
