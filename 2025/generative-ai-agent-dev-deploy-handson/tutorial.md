@@ -36,10 +36,11 @@ gcloud config set project YOUR_PROJECT_ID
 gcloud services enable \
   aiplatform.googleapis.com \
   cloudbuild.googleapis.com \
-  storage.googleapis.com \
   run.googleapis.com \
+  storage.googleapis.com \
   containerregistry.googleapis.com \
-  iap.googleapis.com
+  iap.googleapis.com \
+  cloudresourcemanager.googleapis.com
 ```
 
 
