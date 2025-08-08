@@ -195,6 +195,7 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
          --substitutions=_REGION=us-central1,_AGENT_NAME=my-awesome-agent
     ```
     これにより、デプロイのたびに品質が保証されるようになります。
+    このデプロイとは独立して次のセクションを実施できるため、Cloud Shell をもう一つ開き、先に進めることもできます。
 
 
 ## 8. ローカルの Python Web App から Agent Engine を叩く
