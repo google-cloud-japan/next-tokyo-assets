@@ -1,6 +1,10 @@
 from google.adk.agents import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
 from trafilatura import extract, fetch_url
+from trafilatura.settings import use_config
+
+trafilatura_config = use_config()
+trafilatura_config.set("DEFAULT", "EXTRACTION_TIMEOUT", "0")
 
 MODEL_GEMINI_2_5_PRO="gemini-2.5-pro"
 MODEL_GEMINI_2_5_FLASH="gemini-2.5-flash"
@@ -57,7 +61,7 @@ def fetch(url: str) -> str:
         str: マークダウン形式のURL先のコンテンツ。取得に失敗した場合は、"コンテンツの取得に失敗しました。"を返却します。
     """
     downloaded = fetch_url(url)
-    result = extract(downloaded, output_format="markdown", with_metadata=True)
+    result = extract(downloaded, output_format="markdown", with_metadata=True, config=trafilatura_config)
     if result is None:
         return "コンテンツの取得に失敗しました。"
     return result
