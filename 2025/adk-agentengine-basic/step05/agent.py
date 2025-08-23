@@ -1,9 +1,7 @@
 from google.adk.agents import LlmAgent
 from google.adk.tools import load_artifacts
 from google.adk.tools.agent_tool import AgentTool
-from google.adk.tools.mcp_tool import StdioConnectionParams
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset
-from mcp import StdioServerParameters
+from trafilatura import extract, fetch_url
 
 from .tools import podcast_speaker
 
@@ -54,6 +52,21 @@ podcast_creator_agent = LlmAgent(
     tools=[AgentTool(agent=podcast_writer_agent,), podcast_speaker, load_artifacts],
 )
 
+def fetch(url: str) -> str:
+    """指定されたURLのコンテンツを取得し、マークダウン形式で返却します。
+
+    Args:
+        url (str): コンテンツを取得するURL
+    
+    Returns:
+        str: マークダウン形式のURL先のコンテンツ。取得に失敗した場合は、"コンテンツの取得に失敗しました。"を返却します。
+    """
+    downloaded = fetch_url(url)
+    result = extract(downloaded, output_format="markdown", with_metadata=True)
+    if result is None:
+        return "コンテンツの取得に失敗しました。"
+    return result
+
 agent = LlmAgent(
     name="learning_assistant",
     model=MODEL_GEMINI_2_5_FLASH,
@@ -66,7 +79,7 @@ agent = LlmAgent(
     -   もしURLが含まれていない場合は、「ポッドキャスト音声を生成したいウェブページのURLを教えてください。」と返答してください。
 
 2.  **情報収集 (URLがある場合)**:
-    -   質問に1つまたは複数のURLが含まれている場合、各URLに対して `fetch` ツールを必ず使用して、ウェブページの内容を取得してください。その際、`max_length` パラメータに `100000` を指定してください。
+    -   質問に1つまたは複数のURLが含まれている場合、各URLに対して `fetch` ツールを必ず使用して、ウェブページの内容を取得してください。
     -   `fetch` ツールが失敗した場合は、「申し訳ありません。指定されたURLから情報を取得できませんでした。URLが正しいかご確認ください。」と返答してください。
 
 3.  **コンテンツの準備**:
@@ -78,19 +91,7 @@ agent = LlmAgent(
 5.  **最終出力**:
     -   `podcast_creator_agent` から受け取った最終的な音声ファイルを、そのままユーザーに提示してください。
 """,
-    tools=[
-        MCPToolset(
-            connection_params=StdioConnectionParams(
-                server_params=StdioServerParameters(
-                    command='uvx',
-                    args=[
-                        "mcp-server-fetch",
-                    ],
-                ),
-                timeout=20,
-            ),
-        ),
-    ],
+    tools=[fetch],
     sub_agents=[podcast_creator_agent,]
 )
 

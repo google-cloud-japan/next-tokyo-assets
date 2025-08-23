@@ -1,9 +1,24 @@
 from google.adk.agents import LlmAgent
-from google.adk.tools.load_web_page import load_web_page
+from trafilatura import extract, fetch_url
 
 MODEL_GEMINI_2_5_PRO="gemini-2.5-pro"
 MODEL_GEMINI_2_5_FLASH="gemini-2.5-flash"
 MODEL_GEMINI_2_5_FLASH_LITE="gemini-2.5-flash-lite"
+
+def fetch(url: str) -> str:
+    """指定されたURLのコンテンツを取得し、マークダウン形式で返却します。
+
+    Args:
+        url (str): コンテンツを取得するURL
+    
+    Returns:
+        str: マークダウン形式のURL先のコンテンツ。取得に失敗した場合は、"コンテンツの取得に失敗しました。"を返却します。
+    """
+    downloaded = fetch_url(url)
+    result = extract(downloaded, output_format="markdown", with_metadata=True)
+    if result is None:
+        return "コンテンツの取得に失敗しました。"
+    return result
 
 agent = LlmAgent(
     name="learning_assistant",
@@ -17,15 +32,15 @@ agent = LlmAgent(
     -   質問にURLが含まれているか確認してください。
 
 2.  **情報収集 (URLがある場合)**:
-    -   質問にURLが含まれている場合、`load_web_page` ツールを必ず使用して、ウェブページの内容を取得してください。
-    -   `load_web_page` ツールが失敗した場合や、URLから有益な情報を得られなかった場合は、その旨をユーザーに明確に伝えた上で、自身の知識で回答を試みてください。
+    -   質問にURLが含まれている場合、`fetch` ツールを必ず使用して、ウェブページの内容を取得してください。
+    -   `fetch` ツールが失敗した場合や、URLから有益な情報を得られなかった場合は、その旨をユーザーに明確に伝えた上で、自身の知識で回答を試みてください。
 
 3.  **回答生成**:
     -   **URLから情報を取得した場合**: 取得した内容のみを情報源として、ユーザーの質問に回答してください。取得した情報にないことは回答に含めず、事実に基づいた客観的な回答を心がけてください。
     -   **URLがない場合**: あなた自身の知識を用いて、ユーザーの質問にできる限り正確かつ詳細に回答してください。
     -   回答は、常に中立的で分かりやすい言葉で構成してください。
 """,
-    tools=[load_web_page]
+    tools=[fetch]
 )
 
 root_agent = agent
