@@ -1,0 +1,47 @@
+{
+  "eval_set_id": "evalset_step02",
+  "name": "Eval set for step02",
+  "description": null,
+  "eval_cases": [
+    {
+      "eval_id": "case01",
+      "conversation": [
+        {
+          "invocation_id": "",
+          "user_content": {
+            "parts": [
+              {
+                "text": "東京リージョンにおける GPU を利用しない Cloud Run の月間稼働率の SLA はなんですか？ https://cloud.google.com/run/sla"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "東京リージョンにおける GPU を利用しない Cloud Run の月間稼働率の SLA は 99.95% です。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "args": {
+                  "url": "https://cloud.google.com/run/sla"
+                },
+                "name": "fetch"
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "step02",
+        "user_id": "user",
+        "state": {}
+      }
+    }
+  ]
+}

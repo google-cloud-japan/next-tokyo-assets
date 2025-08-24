@@ -2,8 +2,12 @@ from google.adk.agents import LlmAgent
 from google.adk.tools import load_artifacts
 from google.adk.tools.agent_tool import AgentTool
 from trafilatura import extract, fetch_url
+from trafilatura.settings import use_config
 
 from .tools import podcast_speaker
+
+trafilatura_config = use_config()
+trafilatura_config.set("DEFAULT", "EXTRACTION_TIMEOUT", "0")
 
 MODEL_GEMINI_2_5_PRO="gemini-2.5-pro"
 MODEL_GEMINI_2_5_FLASH="gemini-2.5-flash"
@@ -25,6 +29,7 @@ podcast_writer_agent = LlmAgent(
 -   MCが質問し、解説者が答えるという対話形式で自然に話が進むように構成してください。
 -   全体的に、堅苦しくなりすぎず、明るく楽しい雰囲気で会話が進むようにしてください。
 -   出力には、`Speaker 1:` と `Speaker 2:` の対話のみを含めてください。それ以外の前置きや後書き（「台本は以上です」など）は一切不要です。
+-   解説者の名前を呼ぶときは "佐藤さん" と呼んでください。
 
 # 台本の例
 Speaker 1: こんにちは！本日は、生成AIの日本の導入状況についてディスカッションしていきましょう。よろしくお願いします！
@@ -62,7 +67,7 @@ def fetch(url: str) -> str:
         str: マークダウン形式のURL先のコンテンツ。取得に失敗した場合は、"コンテンツの取得に失敗しました。"を返却します。
     """
     downloaded = fetch_url(url)
-    result = extract(downloaded, output_format="markdown", with_metadata=True)
+    result = extract(downloaded, output_format="markdown", with_metadata=True, config=trafilatura_config)
     if result is None:
         return "コンテンツの取得に失敗しました。"
     return result
