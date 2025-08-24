@@ -5,7 +5,7 @@ description = "Hands-on asset for Agent Development Kit and Agent Engine basic l
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "google-adk>=1.8.0",
+    "google-adk[eval]>=1.8.0",
     "trafilatura>=1.6.1",
 ]
 
