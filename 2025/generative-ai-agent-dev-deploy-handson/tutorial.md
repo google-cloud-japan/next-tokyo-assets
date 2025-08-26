@@ -138,7 +138,7 @@ pip install uv
     adk web .
     ```
 2.  Cloud ShellまたはブラウザでUIを開き、左上のプルダウンメニューから `app` を選択します。
-3.  エージェントと新しい対話を行います（例：「サンフランシスコの今の時間は？」）。
+3.  エージェントと新しい対話を行います（例：「サンフランシスコの今の天気は？」）。
 4.  対話が完了したら、画面上部の **`Evals`** タブに移動します。
 5.  左側の `Eval Sets` パネルから **`simple_weather_eval_set`** を選択します。
 6.  **`Save Last Chat as Eval Case`** ボタンをクリックします。
@@ -155,38 +155,65 @@ CI/CDプロセスに評価ステップを組み込むことで、コードの変
 1.  `agents/cloudbuild.yaml` ファイルを以下のように編集し、`eval` ステップを追加します。
 
     ```yaml
-    steps:
-      - name: "python:3.12"
-        id: eval
-        entrypoint: /bin/bash
-        env:
-          - 'PYTHONPATH=.'
-        args:
-          - "-c"
-          - |
-            pip install uv && uv pip install --system -r requirements.txt
-            adk eval app/ app/simple_weather_eval_set.evalset.json --config_file_path=evaluations/test_config.json | tee eval_output.log
-            if grep -q "Tests failed: [1-9][0-9]*" eval_output.log; then
-              echo "Evaluation failed."
-              exit 1
-            fi
-      - name: "python:3.12"
-        id: deploy
-        entrypoint: /bin/bash
-        env:
-          - 'PYTHONPATH=.'
-        args:
-          - "-c"
-          - |
-            pip install uv && uv pip install --system -r requirements.txt && python3 -m app.agent_engine_app --project ${PROJECT_ID} --agent-name ${_AGENT_NAME} --location ${_REGION} --requirements-file requirements.txt --extra-packages ./app
-    
-    substitutions:
-      _REGION: us-central1
-      _AGENT_NAME: my-first-agent
-    
-    options:
-      substitutionOption: ALLOW_LOOSE
-      defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
+steps:
+  # Step 1: 依存関係をワークスペース内の仮想環境にインストールする
+  - name: "python:3.12"
+    id: install-dependencies
+    entrypoint: /bin/bash
+    args:
+      - "-c"
+      - |
+        python3 -m venv /workspace/.venv
+        . /workspace/.venv/bin/activate
+        pip install uv
+        uv pip install -r requirements.txt
+
+  # Step 2: 評価を実行する
+  # 仮想環境をアクティベートしてから評価スクリプトを実行します。
+  - name: "python:3.12"
+    id: eval
+    waitFor: ['install-dependencies']
+    entrypoint: /bin/bash
+    env:
+      - 'PYTHONPATH=.'
+    args:
+      - "-c"
+      - |
+        source /workspace/.venv/bin/activate
+        adk eval app/ app/simple_weather_eval_set.evalset.json --config_file_path=evaluations/test_config.json | tee eval_output.log
+        # grepで"Tests failed"に0以外の数字が続く行があるかチェックし、あればビルドを失敗させます
+        if grep -q "Tests failed: [1-9][0-9]*" eval_output.log; then
+          echo "Evaluation failed."
+          exit 1
+        fi
+
+  # Step 3: 評価が成功した場合のみデプロイを実行する
+  # 仮想環境をアクティベートしてからデプロイスクリプトを実行します。
+  - name: "python:3.12"
+    id: deploy
+    waitFor: ['eval']
+    entrypoint: /bin/bash
+    env:
+      - 'PYTHONPATH=.'
+    args:
+      - "-c"
+      - |
+        source /workspace/.venv/bin/activate
+        python3 -m app.agent_engine_app \
+          --project ${PROJECT_ID} \
+          --agent-name ${_AGENT_NAME} \
+          --location ${_REGION} \
+          --requirements-file requirements.txt \
+          --extra-packages ./app
+
+substitutions:
+  _REGION: us-central1
+  _AGENT_NAME: my-first-agent
+
+options:
+  substitutionOption: ALLOW_LOOSE
+  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
+
     ```
 
 2.  変更を保存し、再度 `gcloud builds submit` を実行すると、デプロイ後に評価が自動的に実行されるようになります。
