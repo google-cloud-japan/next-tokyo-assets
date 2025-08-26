@@ -15,7 +15,7 @@ steps:
   # 仮想環境をアクティベートしてからデプロイスクリプトを実行します。
   - name: "python:3.12"
     id: deploy
-    waitFor: ['eval']
+    waitFor: ['install-dependencies']
     entrypoint: /bin/bash
     env:
       - 'PYTHONPATH=.'
