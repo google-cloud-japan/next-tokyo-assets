@@ -1,13 +1,34 @@
 steps:
+  # Step 1: 依存関係をワークスペース内の仮想環境にインストールする
+  - name: "python:3.12"
+    id: install-dependencies
+    entrypoint: /bin/bash
+    args:
+      - "-c"
+      - |
+        python3 -m venv /workspace/.venv
+        . /workspace/.venv/bin/activate
+        pip install uv
+        uv pip install -r requirements.txt
+
+  # Step 2: 評価が成功した場合のみデプロイを実行する
+  # 仮想環境をアクティベートしてからデプロイスクリプトを実行します。
   - name: "python:3.12"
     id: deploy
+    waitFor: ['eval']
     entrypoint: /bin/bash
     env:
       - 'PYTHONPATH=.'
     args:
       - "-c"
       - |
-        pip install uv && uv pip install --system -r requirements.txt && python3 -m app.agent_engine_app --project ${PROJECT_ID} --agent-name ${_AGENT_NAME} --location ${_REGION} --requirements-file requirements.txt --extra-packages ./app
+        source /workspace/.venv/bin/activate
+        python3 -m app.agent_engine_app \
+          --project ${PROJECT_ID} \
+          --agent-name ${_AGENT_NAME} \
+          --location ${_REGION} \
+          --requirements-file requirements.txt \
+          --extra-packages ./app
 
 substitutions:
   _REGION: us-central1
