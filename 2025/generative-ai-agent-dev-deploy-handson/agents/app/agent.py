@@ -40,10 +40,29 @@ def get_weather(query: str) -> str:
         return "気温は60度で霧がかかっています。"
     return "気温は90度で晴れです。"
 
+def get_current_time(query: str) -> str:
+    """都市の現在時刻の取得をシミュレートします。
+
+    Args:
+        city: 現在時刻を取得する都市の名前。
+                このクエリ文字列は英語である必要があります。
+                例: [san francisco]
+    Returns:
+        現在の時刻情報を含む文字列。
+    """
+    if "sf" in query.lower() or "san francisco" in query.lower():
+        tz_identifier = "America/Los_Angeles"
+    else:
+        return f"申し訳ありませんが、クエリのタイムゾーン情報がありません: {query}。"
+
+    tz = ZoneInfo(tz_identifier)
+    now = datetime.datetime.now(tz)
+    return f"クエリ {query} の現在の時刻は {now.strftime('%Y-%m-%d %H:%M:%S %Z%z')} です"
+
 
 root_agent = Agent(
     name="root_agent",
     model="gemini-2.5-flash",
     instruction="あなたは、正確で役立つ情報を提供するために設計された、親切なAIアシスタントです。",
-    tools=[get_weather],
+    tools=[get_weather,get_current_time],
 )
