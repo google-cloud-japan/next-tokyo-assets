@@ -1,5 +1,5 @@
 google-cloud-aiplatform[adk,agent_engines]==1.106.0
 cloudpickle==3.1.1
-uv==0.8.4
+uv==0.8.6
 pydantic==2.11.7
 trafilatura==1.6.1
