@@ -1,4 +1,4 @@
-google-adk==1.8.0
+google-adk
 google-adk[eval]
 google-auth
 google-cloud-aiplatform
