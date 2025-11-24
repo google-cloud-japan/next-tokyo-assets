@@ -1,0 +1,5 @@
+name: podcast_workflow
+agent_class: SequentialAgent
+sub_agents:
+  - config_path: ./content_fetcher_agent.yaml
+  - config_path: ./script_generator_agent.yaml

@@ -1,0 +1,15 @@
+name: gcp_releasenotes_agent
+model: gemini-2.5-flash
+agent_class: LlmAgent
+description: Google Cloud のリリースノートについての問い合わせに回答するエージェント
+instruction: あなたは Google Cloud のリリースノートについての問い合わせに回答するエージェントです
+sub_agents: []
+tools:
+  - name: MCPToolset
+    args:
+      stdio_server_params:
+        command: ./mcp-toolbox/toolbox
+        args:
+          - --stdio
+          - --tools-file
+          - ./mcp-toolbox/tools.yaml
