@@ -10,7 +10,7 @@ from vertexai import agent_engines
 
 # --- 定数定義 ---
 USER_ID = "test_user01"
-TARGET_AUTHORS = ["podcast_creator", "learning_assistant",]
+TARGET_AUTHORS = ["podcast_creator", "learning_assistant", "ae_deploy", "script_generator_agent",]
 
 # --- カスタム例外定義 ---
 class AgentEngineError(Exception):
