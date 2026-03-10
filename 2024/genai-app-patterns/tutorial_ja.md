@@ -338,7 +338,6 @@ AI organizer には生成 AI 関連の機能が入っていないため、アプ
 ### **1. 前準備**
 
 ```bash
-# Caveat: There are known output differences between gsutil kms encryption and its gcloud storage counterparts when setting, clearing, or displaying the default KMS key. Users should not rely on the exact output text for scripting.
 SERVICE_ACCOUNT="$(gcloud storage service-agent --project $GOOGLE_CLOUD_PROJECT)"
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
   --member="serviceAccount:${SERVICE_ACCOUNT}" \
