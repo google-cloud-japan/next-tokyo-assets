@@ -338,7 +338,7 @@ AI organizer には生成 AI 関連の機能が入っていないため、アプ
 ### **1. 前準備**
 
 ```bash
-SERVICE_ACCOUNT="$(gsutil kms serviceaccount -p $GOOGLE_CLOUD_PROJECT)"
+SERVICE_ACCOUNT="$(gcloud storage service-agent --project $GOOGLE_CLOUD_PROJECT)"
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
   --member="serviceAccount:${SERVICE_ACCOUNT}" \
   --role='roles/pubsub.publisher'
